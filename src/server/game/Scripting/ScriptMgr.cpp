@@ -103,10 +103,6 @@ struct is_script_database_bound<TransportScript>
     : std::true_type { };
 
 template<>
-struct is_script_database_bound<AchievementCriteriaScript>
-    : std::true_type { };
-
-template<>
 struct is_script_database_bound<AreaTriggerEntityScript>
     : std::true_type { };
 
@@ -2131,15 +2127,6 @@ void ScriptMgr::OnShutdown()
     FOREACH_SCRIPT(WorldScript)->OnShutdown();
 }
 
-bool ScriptMgr::OnCriteriaCheck(uint32 scriptId, Player* source, Unit* target)
-{
-    ASSERT(source);
-    // target can be NULL.
-
-    GET_SCRIPT_RET(AchievementCriteriaScript, scriptId, tmpscript, false);
-    return tmpscript->OnCheck(source, target);
-}
-
 // Player
 void ScriptMgr::OnPVPKill(Player* killer, Player* killed)
 {
@@ -2670,12 +2657,6 @@ TransportScript::TransportScript(const char* name)
     ScriptRegistry<TransportScript>::Instance()->AddScript(this);
 }
 
-AchievementCriteriaScript::AchievementCriteriaScript(const char* name)
-    : ScriptObject(name)
-{
-    ScriptRegistry<AchievementCriteriaScript>::Instance()->AddScript(this);
-}
-
 PlayerScript::PlayerScript(const char* name)
     : UnitScript(name, false)
 {
@@ -2745,7 +2726,6 @@ template class TC_GAME_API ScriptRegistry<ConditionScript>;
 template class TC_GAME_API ScriptRegistry<VehicleScript>;
 template class TC_GAME_API ScriptRegistry<DynamicObjectScript>;
 template class TC_GAME_API ScriptRegistry<TransportScript>;
-template class TC_GAME_API ScriptRegistry<AchievementCriteriaScript>;
 template class TC_GAME_API ScriptRegistry<PlayerScript>;
 template class TC_GAME_API ScriptRegistry<GuildScript>;
 template class TC_GAME_API ScriptRegistry<GroupScript>;

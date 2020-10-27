@@ -758,17 +758,6 @@ class spell_clear_all : public SpellScriptLoader
         }
 };
 
-class achievement_ohganot_so_fast : public AchievementCriteriaScript
-{
-   public:
-       achievement_ohganot_so_fast() : AchievementCriteriaScript("achievement_ohganot_so_fast") { }
-
-       bool OnCheck(Player* /*player*/, Unit* target) override
-       {
-           return target && target->GetAI()->GetData(DATA_OHGANOT_SO_FAST);
-       }
-};
-
 void AddSC_boss_mandokir()
 {
     new boss_mandokir();
@@ -782,5 +771,4 @@ void AddSC_boss_mandokir()
     new spell_mandokir_ohgan_orders_trigger();
     new spell_mandokir_reanimate_ohgan();
     new spell_clear_all();
-    new achievement_ohganot_so_fast();
 }

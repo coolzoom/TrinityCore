@@ -553,37 +553,6 @@ class instance_naxxramas : public InstanceMapScript
                 return true;
             }
 
-            bool CheckAchievementCriteriaMeet(uint32 criteria_id, Player const* /*source*/, Unit const* /*target = NULL*/, uint32 /*miscvalue1 = 0*/) override
-            {
-                switch (criteria_id)
-                {
-                    // And They Would All Go Down Together (kill 4HM within 15sec of each other)
-                    case 7600: // 25-man
-                    case 7601: // 10-man
-                        if (Creature* baron = instance->GetCreature(BaronGUID)) // it doesn't matter which one we use, really
-                            return (baron->AI()->GetData(DATA_HORSEMEN_CHECK_ACHIEVEMENT_CREDIT) == 1u);
-                        return false;
-                    // Difficulty checks are done on DB.
-                    // Criteria for achievement 2186: The Immortal (25-man)
-                    case 13233: // The Four Horsemen
-                    case 13234: // Maexxna
-                    case 13235: // Thaddius
-                    case 13236: // Loatheb
-                    case 7616:  // Kel'Thuzad
-                    // Criteria for achievement 2187: The Undying (10-man)
-                    case 13237: // The Four Horsemen
-                    case 13238: // Maexxna
-                    case 13239: // Loatheb
-                    case 13240: // Thaddius
-                    case 7617:  // Kel'Thuzad
-                        if (AreAllEncountersDone() && !playerDied)
-                            return true;
-                        return false;
-                }
-
-                return false;
-            }
-
         protected:
             /* The Arachnid Quarter */
             // Anub'rekhan

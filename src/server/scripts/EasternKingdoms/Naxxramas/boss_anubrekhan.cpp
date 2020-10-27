@@ -151,9 +151,6 @@ public:
         void JustDied(Unit* /*killer*/) override
         {
             _JustDied();
-
-            // start achievement timer (kill Maexna within 20 min)
-            instance->DoStartCriteriaTimer(CRITERIA_TIMED_TYPE_EVENT, ACHIEV_TIMED_START_EVENT);
         }
 
         void EnterCombat(Unit* /*who*/) override

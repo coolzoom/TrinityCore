@@ -215,13 +215,6 @@ public:
     // Send Notify to all players in instance
     void DoSendNotifyToInstance(char const* format, ...);
 
-    // Update Achievement Criteria for all players in instance
-    void DoUpdateCriteria(CriteriaTypes type, uint32 miscValue1 = 0, uint32 miscValue2 = 0, Unit* unit = NULL);
-
-    // Start/Stop Timed Achievement Criteria for all players in instance
-    void DoStartCriteriaTimer(CriteriaTimedTypes type, uint32 entry);
-    void DoStopCriteriaTimer(CriteriaTimedTypes type, uint32 entry);
-
     // Remove Auras due to Spell on all players in instance
     void DoRemoveAurasDueToSpellOnPlayers(uint32 spell);
 

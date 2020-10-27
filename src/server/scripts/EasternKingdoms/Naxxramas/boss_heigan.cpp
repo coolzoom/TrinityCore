@@ -254,27 +254,8 @@ class spell_heigan_eruption : public SpellScriptLoader
         }
 };
 
-class achievement_safety_dance : public AchievementCriteriaScript
-{
-    public:
-        achievement_safety_dance() : AchievementCriteriaScript("achievement_safety_dance") { }
-
-        bool OnCheck(Player* /*player*/, Unit* target) override
-        {
-            if (!target)
-                return false;
-
-            if (Creature* Heigan = target->ToCreature())
-                if (Heigan->AI()->GetData(DATA_SAFETY_DANCE))
-                    return true;
-
-            return false;
-        }
-};
-
 void AddSC_boss_heigan()
 {
     new boss_heigan();
     new spell_heigan_eruption();
-    new achievement_safety_dance();
 }

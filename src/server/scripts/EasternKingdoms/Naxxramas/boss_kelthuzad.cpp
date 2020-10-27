@@ -972,25 +972,6 @@ public:
     }
 };
 
-class achievement_just_cant_get_enough : public AchievementCriteriaScript
-{
-   public:
-        achievement_just_cant_get_enough() : AchievementCriteriaScript("achievement_just_cant_get_enough") { }
-
-        bool OnCheck(Player* /*player*/, Unit* target) override
-        {
-            if (!target)
-                return false;
-
-            if (InstanceScript* instance = target->GetInstanceScript())
-                if (Creature* kelThuzad = ObjectAccessor::GetCreature(*target, instance->GetGuidData(DATA_KELTHUZAD)))
-                    if (kelThuzad->AI()->GetData(DATA_ABOMINATION_DEATH_COUNT) >= 18)
-                        return true;
-
-            return false;
-        }
-};
-
 void AddSC_boss_kelthuzad()
 {
     new boss_kelthuzad();
@@ -1001,5 +982,4 @@ void AddSC_boss_kelthuzad()
     new spell_kelthuzad_chains();
     new spell_kelthuzad_detonate_mana();
     new at_kelthuzad_center();
-    new achievement_just_cant_get_enough();
 }

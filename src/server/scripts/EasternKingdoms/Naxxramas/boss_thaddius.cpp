@@ -1281,18 +1281,6 @@ class at_thaddius_entrance : public AreaTriggerScript
         }
 };
 
-class achievement_thaddius_shocking : public AchievementCriteriaScript
-{
-    public:
-        achievement_thaddius_shocking() : AchievementCriteriaScript("achievement_thaddius_shocking") { }
-
-        bool OnCheck(Player* /*source*/, Unit* target) override
-        {
-            return target && target->GetAI() && target->GetAI()->GetData(DATA_POLARITY_CROSSED);
-        }
-};
-
-
 void AddSC_boss_thaddius()
 {
     RegisterNaxxramasCreatureAI(boss_thaddius);
@@ -1306,5 +1294,4 @@ void AddSC_boss_thaddius()
 
     new at_thaddius_entrance();
 
-    new achievement_thaddius_shocking();
 }

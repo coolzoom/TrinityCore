@@ -250,17 +250,6 @@ class npc_faerlina_add : public CreatureScript
         }
 };
 
-class achievement_momma_said_knock_you_out : public AchievementCriteriaScript
-{
-    public:
-        achievement_momma_said_knock_you_out() : AchievementCriteriaScript("achievement_momma_said_knock_you_out") { }
-
-        bool OnCheck(Player* /*source*/, Unit* target) override
-        {
-            return target && !target->GetAI()->GetData(DATA_FRENZY_DISPELS);
-        }
-};
-
 class at_faerlina_entrance : public AreaTriggerScript
 {
     public:
@@ -285,5 +274,4 @@ void AddSC_boss_faerlina()
     new boss_faerlina();
     new npc_faerlina_add();
     new at_faerlina_entrance();
-    new achievement_momma_said_knock_you_out();
 }

@@ -151,17 +151,6 @@ class boss_loatheb : public CreatureScript
         }
 };
 
-class achievement_spore_loser : public AchievementCriteriaScript
-{
-    public:
-        achievement_spore_loser() : AchievementCriteriaScript("achievement_spore_loser") { }
-
-        bool OnCheck(Player* /*source*/, Unit* target) override
-        {
-            return target && target->GetAI()->GetData(DATA_ACHIEVEMENT_SPORE_LOSER);
-        }
-};
-
 class spell_loatheb_deathbloom : public SpellScriptLoader
 {
     public:
@@ -199,6 +188,5 @@ class spell_loatheb_deathbloom : public SpellScriptLoader
 void AddSC_boss_loatheb()
 {
     new boss_loatheb();
-    new achievement_spore_loser();
     new spell_loatheb_deathbloom();
 }

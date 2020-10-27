@@ -627,17 +627,6 @@ class spell_sapphiron_summon_blizzard : public SpellScriptLoader
         }
 };
 
-class achievement_the_hundred_club : public AchievementCriteriaScript
-{
-    public:
-        achievement_the_hundred_club() : AchievementCriteriaScript("achievement_the_hundred_club") { }
-
-        bool OnCheck(Player* /*source*/, Unit* target) override
-        {
-            return target && target->GetAI()->GetData(DATA_THE_HUNDRED_CLUB);
-        }
-};
-
 void AddSC_boss_sapphiron()
 {
     new boss_sapphiron();
@@ -646,5 +635,4 @@ void AddSC_boss_sapphiron()
     new spell_sapphiron_icebolt();
     new spell_sapphiron_frost_breath();
     new spell_sapphiron_summon_blizzard();
-    new achievement_the_hundred_club();
 }

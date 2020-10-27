@@ -645,18 +645,6 @@ class TC_GAME_API TransportScript : public ScriptObject, public UpdatableScript<
         virtual void OnRelocate(Transport* /*transport*/, uint32 /*waypointId*/, uint32 /*mapId*/, float /*x*/, float /*y*/, float /*z*/) { }
 };
 
-class TC_GAME_API AchievementCriteriaScript : public ScriptObject
-{
-    protected:
-
-        AchievementCriteriaScript(const char* name);
-
-    public:
-
-        // Called when an additional criteria is checked.
-        virtual bool OnCheck(Player* source, Unit* target) = 0;
-};
-
 class TC_GAME_API PlayerScript : public UnitScript
 {
     protected:
