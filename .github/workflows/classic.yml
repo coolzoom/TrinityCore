@@ -1,0 +1,29 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ classic ]
+  pull_request:
+    branches: [ classic ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: befor install
+      run: |
+          sudo apt-get -qq install libmysql++-dev libmysqlclient-dev
+          sudo apt-get -qq install libboost1.58-dev libboost-filesystem1.58-dev libboost-iostreams1.58-dev libboost-program-options1.58-dev
+          sudo apt-get -qq install libboost-system1.58-dev libboost-thread1.58-dev
+          sudo apt-get -qq install cmake libreadline6-dev zlib1g-dev git make libbz2-dev openssl libssl-dev
+    - uses: actions/checkout@v2
+    - name: Build & install
+      run: |
+        mkdir build
+        mkdir _install
+        cd build
+        cmake ../ -DCMAKE_INSTALL_PREFIX=../_install -DCMAKE_C_COMPILER="gcc" -DCMAKE_CXX_COMPILER="g++" -DWITH_WARNINGS=1 -DWITH_COREDEBUG=0 -DUSE_COREPCH=1 -DUSE_SCRIPTPCH=1 -DTOOLS=1 -DSCRIPTS=dynamic -DSERVERS=1 -DNOJEM=1 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DCMAKE_C_FLAGS_DEBUG="-DNDEBUG" -DCMAKE_CXX_FLAGS_DEBUG="-DNDEBUG" -DCMAKE_INSTALL_PREFIX=check_install
+        make -j2
+        make install
