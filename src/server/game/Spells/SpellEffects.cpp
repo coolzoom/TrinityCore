@@ -239,7 +239,6 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectUnused,                                   //163 SPELL_EFFECT_OBLITERATE_ITEM
     &Spell::EffectRemoveAura,                               //164 SPELL_EFFECT_REMOVE_AURA
     &Spell::EffectDamageFromMaxHealthPCT,                   //165 SPELL_EFFECT_DAMAGE_FROM_MAX_HEALTH_PCT
-    &Spell::EffectGiveCurrency,                             //166 SPELL_EFFECT_GIVE_CURRENCY
     &Spell::EffectUpdatePlayerPhase,                        //167 SPELL_EFFECT_UPDATE_PLAYER_PHASE
     &Spell::EffectNULL,                                     //168 SPELL_EFFECT_ALLOW_CONTROL_PET
     &Spell::EffectDestroyItem,                              //169 SPELL_EFFECT_DESTROY_ITEM
@@ -5340,20 +5339,6 @@ void Spell::EffectDamageFromMaxHealthPCT(SpellEffIndex /*effIndex*/)
         return;
 
     m_damage += unitTarget->CountPctFromMaxHealth(damage);
-}
-
-void Spell::EffectGiveCurrency(SpellEffIndex /*effIndex*/)
-{
-    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
-        return;
-
-    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
-        return;
-
-    if (!sCurrencyTypesStore.LookupEntry(effectInfo->MiscValue))
-        return;
-
-    unitTarget->ToPlayer()->ModifyCurrency(effectInfo->MiscValue, damage);
 }
 
 void Spell::EffectCastButtons(SpellEffIndex /*effIndex*/)

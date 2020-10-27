@@ -831,7 +831,7 @@ class TC_GAME_API World
         void ResetMonthlyQuests();
         void ResetRandomBG();
         void ResetGuildCap();
-        void ResetCurrencyWeekCap();
+
     private:
         World();
         ~World();

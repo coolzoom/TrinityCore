@@ -561,11 +561,6 @@ void WorldSession::HandleBuyItemOpcode(WorldPackets::Item::BuyItem& packet)
                 packet.Quantity, bag, packet.Slot);
             break;
         }
-        case ITEM_VENDOR_TYPE_CURRENCY:
-        {
-            GetPlayer()->BuyCurrencyFromVendorSlot(packet.VendorGUID, packet.Muid, packet.Item.ItemID, packet.Quantity);
-            break;
-        }
         default:
         {
             TC_LOG_DEBUG("network", "WORLD: received wrong itemType (%u) in HandleBuyItemOpcode", packet.ItemType);
@@ -1233,15 +1228,6 @@ void WorldSession::HandleUpgradeItem(WorldPackets::Item::UpgradeItem& upgradeIte
         return;
     }
 
-    // Check if player has enough currency
-    if (!_player->HasCurrency(itemUpgradeEntry->CurrencyType, itemUpgradeEntry->CurrencyAmount))
-    {
-        TC_LOG_DEBUG("network", "WORLD: HandleUpgradeItems - Player has not enougth currency (ID: %u, Cost: %u) not found.", itemUpgradeEntry->CurrencyType, itemUpgradeEntry->CurrencyAmount);
-        itemUpgradeResult.Success = false;
-        SendPacket(itemUpgradeResult.Write());
-        return;
-    }
-
     uint32 currentUpgradeId = item->GetModifier(ITEM_MODIFIER_UPGRADE_ID);
     if (currentUpgradeId != itemUpgradeEntry->PrerequisiteID)
     {
@@ -1263,7 +1249,7 @@ void WorldSession::HandleUpgradeItem(WorldPackets::Item::UpgradeItem& upgradeIte
         _player->_ApplyItemBonuses(item, item->GetSlot(), true);
 
     item->SetState(ITEM_CHANGED, _player);
-    _player->ModifyCurrency(itemUpgradeEntry->CurrencyType, -int32(itemUpgradeEntry->CurrencyAmount));
+
 }
 
 void WorldSession::HandleSortBags(WorldPackets::Item::SortBags& /*sortBags*/)

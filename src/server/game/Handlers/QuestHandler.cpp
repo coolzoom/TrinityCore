@@ -726,9 +726,6 @@ void WorldSession::HandlePlayerChoiceResponse(WorldPackets::Quest::ChoiceRespons
             }
         }
 
-        for (PlayerChoiceResponseRewardEntry const& currency : playerChoiceResponse->Reward->Currency)
-            _player->ModifyCurrency(currency.Id, currency.Quantity);
-
         for (PlayerChoiceResponseRewardEntry const& faction : playerChoiceResponse->Reward->Faction)
             _player->GetReputationMgr().ModifyReputation(sFactionStore.AssertEntry(faction.Id), faction.Quantity);
     }

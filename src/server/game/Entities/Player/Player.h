@@ -1236,35 +1236,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void AddRefundReference(ObjectGuid it);
         void DeleteRefundReference(ObjectGuid it);
 
-        /// send initialization of new currency for client
-        void SendNewCurrency(uint32 id) const;
-        /// send full data about all currencies to client
-        void SendCurrencies() const;
-        /// send conquest currency points and their cap week/arena
-        void SendPvpRewards() const;
-        /// return count of currency witch has plr
-        uint32 GetCurrency(uint32 id) const;
-        /// return count of currency gaind on current week
-        uint32 GetCurrencyOnWeek(uint32 id) const;
-        /// return week cap by currency id
-        uint32 GetCurrencyWeekCap(uint32 id) const;
-        /// return presence related currency
-        bool HasCurrency(uint32 id, uint32 count) const;
-        /// initialize currency count for custom initialization at create character
-        void SetCurrency(uint32 id, uint32 count, bool printLog = true);
-        void ResetCurrencyWeekCap();
-
-        /**
-          * @name   ModifyCurrency
-          * @brief  Change specific currency and send result to client
-
-          * @param  id currency entry from CurrencyTypes.dbc
-          * @param  count integer value for adding/removing curent currency
-          * @param  printLog used on SMSG_SET_CURRENCY
-          * @param  ignore gain multipliers
-        */
-        void ModifyCurrency(uint32 id, int32 count, bool printLog = true, bool ignoreMultipliers = false);
-
         void ApplyEquipCooldown(Item* pItem);
         void QuickEquipItem(uint16 pos, Item* pItem);
         void VisualizeItem(uint8 slot, Item* pItem);
@@ -1298,7 +1269,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         bool IsUsingTwoHandedWeaponInOneHand() const;
         void SendNewItem(Item* item, uint32 quantity, bool received, bool created, bool broadcast = false);
         bool BuyItemFromVendorSlot(ObjectGuid vendorguid, uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot);
-        bool BuyCurrencyFromVendorSlot(ObjectGuid vendorGuid, uint32 vendorSlot, uint32 currency, uint32 count);
         bool _StoreOrEquipNewItem(uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot, int64 price, ItemTemplate const* pProto, Creature* pVendor, VendorItem const* crItem, bool bStore);
 
         float GetReputationPriceDiscount(Creature const* creature) const;
@@ -1436,7 +1406,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void KillCreditCriteriaTreeObjective(QuestObjective const& questObjective);
         void MoneyChanged(uint64 value);
         void ReputationChanged(FactionEntry const* factionEntry);
-        void CurrencyChanged(uint32 currencyId, int32 change);
         bool HasQuestForItem(uint32 itemId) const;
         bool HasQuestForGO(int32 goId) const;
         void UpdateForQuestWorldObjects();
@@ -1758,17 +1727,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         ObjectGuid::LowType GetGuildIdInvited() const { return m_GuildIdInvited; }
         static void RemovePetitionsAndSigns(ObjectGuid guid);
 
-        // Arena Team
-        void SetInArenaTeam(uint32 ArenaTeamId, uint8 slot, uint8 type);
-        void SetArenaTeamInfoField(uint8 slot, ArenaTeamInfoType type, uint32 value);
-        static uint32 GetArenaTeamIdFromDB(ObjectGuid guid, uint8 slot);
-        static void LeaveAllArenaTeams(ObjectGuid guid);
-        uint32 GetArenaTeamId(uint8 slot) const { return GetUInt32Value(ACTIVE_PLAYER_FIELD_ARENA_TEAM_INFO + (slot * ARENA_TEAM_END) + ARENA_TEAM_ID); }
-        uint32 GetArenaPersonalRating(uint8 slot) const { return GetUInt32Value(ACTIVE_PLAYER_FIELD_ARENA_TEAM_INFO + (slot * ARENA_TEAM_END) + ARENA_TEAM_PERSONAL_RATING); }
-        void SetArenaTeamIdInvited(uint32 ArenaTeamId) { m_ArenaTeamIdInvited = ArenaTeamId; }
-        uint32 GetArenaTeamIdInvited() const { return m_ArenaTeamIdInvited; }
-        uint32 GetRBGPersonalRating() const { return 0; }
-
         Difficulty GetDifficultyID(MapEntry const* mapEntry) const;
         Difficulty GetDungeonDifficultyID() const { return m_dungeonDifficulty; }
         Difficulty GetRaidDifficultyID() const { return m_raidDifficulty; }
@@ -1970,7 +1928,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         // TODO: Properly implement correncies as of Cataclysm
         void UpdateHonorFields();
         bool RewardHonor(Unit* victim, uint32 groupsize, int32 honor = -1, bool pvptoken = false);
-        uint32 GetMaxPersonalArenaRatingRequirement(uint32 minarenaslot) const;
 
         // duel health and mana reset methods
         void SaveHealthBeforeDuel() { healthBeforeDuel = GetHealth(); }
@@ -2458,7 +2415,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void _SaveTalents(SQLTransaction& trans);
         void _SaveStats(SQLTransaction& trans) const;
         void _SaveInstanceTimeRestrictions(SQLTransaction& trans);
-        void _SaveCurrency(SQLTransaction& trans);
         void _SaveCUFProfiles(SQLTransaction& trans);
 
         /*********************************************************/

@@ -17,8 +17,6 @@
  */
 
 #include "BattlegroundQueue.h"
-#include "ArenaTeam.h"
-#include "ArenaTeamMgr.h"
 #include "BattlegroundMgr.h"
 #include "BattlegroundPackets.h"
 #include "Chat.h"
@@ -160,14 +158,6 @@ GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, Battlegr
     TC_LOG_DEBUG("bg.battleground", "Adding Group to BattlegroundQueue bgTypeId : %u, bracket_id : %u, index : %u", BgTypeId, bracketId, index);
 
     uint32 lastOnlineTime = getMSTime();
-
-    //announce world (this don't need mutex)
-    if (isRated && sWorld->getBoolConfig(CONFIG_ARENA_QUEUE_ANNOUNCER_ENABLE))
-    {
-        ArenaTeam* team = sArenaTeamMgr->GetArenaTeamById(arenateamid);
-        if (team)
-            sWorld->SendWorldText(LANG_ARENA_QUEUE_ANNOUNCE_WORLD_JOIN, team->GetName().c_str(), ginfo->ArenaType, ginfo->ArenaType, ginfo->ArenaTeamRating);
-    }
 
     //add players from group to ginfo
     if (grp)
@@ -354,25 +344,6 @@ void BattlegroundQueue::RemovePlayer(ObjectGuid guid, bool decreaseInvitedCount)
 
     // remove player queue info
     m_QueuedPlayers.erase(itr);
-
-    // announce to world if arena team left queue for rated match, show only once
-    if (group->ArenaType && group->IsRated && group->Players.empty() && sWorld->getBoolConfig(CONFIG_ARENA_QUEUE_ANNOUNCER_ENABLE))
-        if (ArenaTeam* team = sArenaTeamMgr->GetArenaTeamById(group->ArenaTeamId))
-            sWorld->SendWorldText(LANG_ARENA_QUEUE_ANNOUNCE_WORLD_EXIT, team->GetName().c_str(), group->ArenaType, group->ArenaType, group->ArenaTeamRating);
-
-    // if player leaves queue and he is invited to rated arena match, then he have to lose
-    if (group->IsInvitedToBGInstanceGUID && group->IsRated && decreaseInvitedCount)
-    {
-        if (ArenaTeam* at = sArenaTeamMgr->GetArenaTeamById(group->ArenaTeamId))
-        {
-            TC_LOG_DEBUG("bg.battleground", "UPDATING memberLost's personal arena rating for %s by opponents rating: %u", guid.ToString().c_str(), group->OpponentsTeamRating);
-            if (Player* player = ObjectAccessor::FindConnectedPlayer(guid))
-                at->MemberLost(player, group->OpponentsMatchmakerRating);
-            else
-                at->OfflineMemberLost(guid, group->OpponentsMatchmakerRating);
-            at->SaveToDB();
-        }
-    }
 
     // remove group queue info if needed
     if (group->Players.empty())

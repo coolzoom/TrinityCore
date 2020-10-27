@@ -17,8 +17,6 @@
  */
 
 #include "WorldSession.h"
-#include "ArenaTeam.h"
-#include "ArenaTeamMgr.h"
 #include "Battleground.h"
 #include "BattlegroundMgr.h"
 #include "BattlegroundPackets.h"
@@ -386,17 +384,6 @@ void WorldSession::HandleBattleFieldPortOpcode(WorldPackets::Battleground::Battl
     }
     else // leave queue
     {
-        // if player leaves rated arena match before match start, it is counted as he played but he lost
-        if (ginfo.IsRated && ginfo.IsInvitedToBGInstanceGUID)
-        {
-            ArenaTeam* at = sArenaTeamMgr->GetArenaTeamById(ginfo.Team);
-            if (at)
-            {
-                TC_LOG_DEBUG("bg.battleground", "UPDATING memberLost's personal arena rating for %s by opponents rating: %u, because he has left queue!", _player->GetGUID().ToString().c_str(), ginfo.OpponentsTeamRating);
-                at->MemberLost(_player, ginfo.OpponentsMatchmakerRating);
-                at->SaveToDB();
-            }
-        }
 
         WorldPackets::Battleground::BattlefieldStatusNone battlefieldStatus;
         battlefieldStatus.Ticket = battlefieldPort.Ticket;
@@ -484,100 +471,6 @@ void WorldSession::HandleRequestBattlefieldStatusOpcode(WorldPackets::Battlegrou
     }
 }
 
-void WorldSession::HandleBattlemasterJoinArena(WorldPackets::Battleground::BattlemasterJoinArena& packet)
-{
-    // ignore if we already in BG or BG queue
-    if (_player->InBattleground())
-        return;
-
-    uint8 arenatype = ArenaTeam::GetTypeBySlot(packet.TeamSizeIndex);
-
-    //check existence
-    Battleground* bg = sBattlegroundMgr->GetBattlegroundTemplate(BATTLEGROUND_AA);
-    if (!bg)
-    {
-        TC_LOG_ERROR("network", "Battleground: template bg (all arenas) not found");
-        return;
-    }
-
-    if (DisableMgr::IsDisabledFor(DISABLE_TYPE_BATTLEGROUND, BATTLEGROUND_AA, nullptr))
-    {
-        ChatHandler(this).PSendSysMessage(LANG_ARENA_DISABLED);
-        return;
-    }
-
-    BattlegroundTypeId bgTypeId = bg->GetTypeID();
-    BattlegroundQueueTypeId bgQueueTypeId = BattlegroundMgr::BGQueueTypeId(bgTypeId, arenatype);
-    PVPDifficultyEntry const* bracketEntry = DB2Manager::GetBattlegroundBracketByLevel(bg->GetMapId(), _player->getLevel());
-    if (!bracketEntry)
-        return;
-
-    Group* grp = _player->GetGroup();
-    // no group found, error
-    if (!grp)
-        return;
-    if (grp->GetLeaderGUID() != _player->GetGUID())
-        return;
-
-    uint32 ateamId = _player->GetArenaTeamId(packet.TeamSizeIndex);
-    // check real arenateam existence only here (if it was moved to group->CanJoin .. () then we would ahve to get it twice)
-    ArenaTeam* at = sArenaTeamMgr->GetArenaTeamById(ateamId);
-    if (!at)
-    {
-        _player->GetSession()->SendNotInArenaTeamPacket(arenatype);
-        return;
-    }
-
-    // get the team rating for queuing
-    uint32 arenaRating = at->GetRating();
-    uint32 matchmakerRating = at->GetAverageMMR(grp);
-    // the arenateam id must match for everyone in the group
-
-    if (arenaRating <= 0)
-        arenaRating = 1;
-
-    BattlegroundQueue& bgQueue = sBattlegroundMgr->GetBattlegroundQueue(bgQueueTypeId);
-
-    uint32 avgTime = 0;
-    GroupQueueInfo* ginfo = nullptr;
-
-    ObjectGuid errorGuid;
-    GroupJoinBattlegroundResult err = grp->CanJoinBattlegroundQueue(bg, bgQueueTypeId, arenatype, arenatype, true, packet.TeamSizeIndex, errorGuid);
-    if (!err)
-    {
-        TC_LOG_DEBUG("bg.battleground", "Battleground: arena team id %u, leader %s queued with matchmaker rating %u for type %u", _player->GetArenaTeamId(packet.TeamSizeIndex), _player->GetName().c_str(), matchmakerRating, arenatype);
-
-        ginfo = bgQueue.AddGroup(_player, grp, bgTypeId, bracketEntry, arenatype, true, false, arenaRating, matchmakerRating, ateamId);
-        avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, bracketEntry->GetBracketId());
-    }
-
-    for (GroupReference* itr = grp->GetFirstMember(); itr != nullptr; itr = itr->next())
-    {
-        Player* member = itr->GetSource();
-        if (!member)
-            continue;
-
-        if (err)
-        {
-            WorldPackets::Battleground::BattlefieldStatusFailed battlefieldStatus;
-            sBattlegroundMgr->BuildBattlegroundStatusFailed(&battlefieldStatus, bg, _player, 0, arenatype, err, &errorGuid);
-            member->SendDirectMessage(battlefieldStatus.Write());
-            continue;
-        }
-
-        // add to queue
-        uint32 queueSlot = member->AddBattlegroundQueueId(bgQueueTypeId);
-
-        WorldPackets::Battleground::BattlefieldStatusQueued battlefieldStatus;
-        sBattlegroundMgr->BuildBattlegroundStatusQueued(&battlefieldStatus, bg, member, queueSlot, ginfo->JoinTime, avgTime, arenatype, true);
-        member->SendDirectMessage(battlefieldStatus.Write());
-
-        TC_LOG_DEBUG("bg.battleground", "Battleground: player joined queue for arena as group bg queue type %u bg type %u, %s, NAME %s", bgQueueTypeId, bgTypeId, member->GetGUID().ToString().c_str(), member->GetName().c_str());
-    }
-
-    sBattlegroundMgr->ScheduleQueueUpdate(matchmakerRating, arenatype, bgQueueTypeId, bgTypeId, bracketEntry->GetBracketId());
-}
-
 void WorldSession::HandleReportPvPAFK(WorldPackets::Battleground::ReportPvPPlayerAFK& reportPvPPlayerAFK)
 {
     Player* reportedPlayer = ObjectAccessor::FindPlayer(reportPvPPlayerAFK.Offender);
@@ -630,39 +523,6 @@ void WorldSession::HandleGetPVPOptionsEnabled(WorldPackets::Battleground::GetPVP
     pvpOptionsEnabled.PugBattlegrounds = true;
     pvpOptionsEnabled.RatedBattlegrounds = false;
     SendPacket(pvpOptionsEnabled.Write());
-}
-
-void WorldSession::HandleRequestPvpReward(WorldPackets::Battleground::RequestPVPRewards& /*packet*/)
-{
-    _player->SendPvpRewards();
-}
-
-void WorldSession::HandleAreaSpiritHealerQueryOpcode(WorldPackets::Battleground::AreaSpiritHealerQuery& areaSpiritHealerQuery)
-{
-    Creature* unit = ObjectAccessor::GetCreature(*GetPlayer(), areaSpiritHealerQuery.HealerGuid);
-    if (!unit)
-        return;
-
-    if (!unit->IsSpiritService())                            // it's not spirit service
-        return;
-
-    if (Battleground* bg = _player->GetBattleground())
-        sBattlegroundMgr->SendAreaSpiritHealerQueryOpcode(_player, bg, areaSpiritHealerQuery.HealerGuid);
-
-}
-
-void WorldSession::HandleAreaSpiritHealerQueueOpcode(WorldPackets::Battleground::AreaSpiritHealerQueue& areaSpiritHealerQueue)
-{
-    Creature* unit = ObjectAccessor::GetCreature(*GetPlayer(), areaSpiritHealerQueue.HealerGuid);
-    if (!unit)
-        return;
-
-    if (!unit->IsSpiritService())                            // it's not spirit service
-        return;
-
-    if (Battleground* bg = _player->GetBattleground())
-        bg->AddPlayerToResurrectQueue(areaSpiritHealerQueue.HealerGuid, _player->GetGUID());
-
 }
 
 void WorldSession::HandleHearthAndResurrect(WorldPackets::Battleground::HearthAndResurrect& /*hearthAndResurrect*/)

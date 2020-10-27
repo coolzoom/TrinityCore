@@ -2676,20 +2676,6 @@ bool ConditionMgr::IsPlayerMeetingCondition(Player const* player, PlayerConditio
             return false;
     }
 
-    if (condition->CurrencyID[0])
-    {
-        using CurrencyCount = std::extent<decltype(condition->CurrencyID)>;
-
-        std::array<bool, CurrencyCount::value> results;
-        results.fill(true);
-        for (std::size_t i = 0; i < CurrencyCount::value; ++i)
-            if (condition->CurrencyID[i])
-                results[i] = player->GetCurrency(condition->CurrencyID[i]) >= condition->CurrencyCount[i];
-
-        if (!PlayerConditionLogic(condition->CurrencyLogic, results))
-            return false;
-    }
-
     if (condition->Explored[0] || condition->Explored[1])
     {
         using ExploredCount = std::extent<decltype(condition->Explored)>;

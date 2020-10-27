@@ -23,7 +23,6 @@
 #include "World.h"
 #include "AccountMgr.h"
 #include "AreaTriggerDataStore.h"
-#include "ArenaTeamMgr.h"
 #include "AuctionHouseBot.h"
 #include "AuctionHouseMgr.h"
 #include "AuthenticationPackets.h"
@@ -1921,9 +1920,6 @@ void World::SetInitialWorldSettings()
 
     sGuildFinderMgr->LoadFromDB();
 
-    TC_LOG_INFO("server.loading", "Loading ArenaTeams...");
-    sArenaTeamMgr->LoadArenaTeams();
-
     TC_LOG_INFO("server.loading", "Loading Groups...");
     sGroupMgr->LoadGroups();
 
@@ -2285,9 +2281,6 @@ void World::Update(uint32 diff)
 
     if (m_gameTime > m_NextGuildReset)
         ResetGuildCap();
-
-    if (m_gameTime > m_NextCurrencyReset)
-        ResetCurrencyWeekCap();
 
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())
@@ -3237,18 +3230,6 @@ void World::DailyReset()
 
     // change available dailies
     sPoolMgr->ChangeDailyQuests();
-}
-
-void World::ResetCurrencyWeekCap()
-{
-    CharacterDatabase.Execute("UPDATE `character_currency` SET `WeeklyQuantity` = 0");
-
-    for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
-        if (itr->second->GetPlayer())
-            itr->second->GetPlayer()->ResetCurrencyWeekCap();
-
-    m_NextCurrencyReset = time_t(m_NextCurrencyReset + DAY * getIntConfig(CONFIG_CURRENCY_RESET_INTERVAL));
-    sWorld->setWorldState(WS_CURRENCY_RESET_TIME, uint32(m_NextCurrencyReset));
 }
 
 void World::LoadDBAllowedSecurityLevel()
