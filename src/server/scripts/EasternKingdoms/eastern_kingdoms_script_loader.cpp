@@ -79,6 +79,22 @@ void AddSC_boss_sulfuron();
 void AddSC_boss_majordomo();
 void AddSC_boss_ragnaros();
 void AddSC_instance_molten_core();
+void AddSC_boss_anubrekhan();            //Naxxramas
+void AddSC_boss_maexxna();
+void AddSC_boss_patchwerk();
+void AddSC_boss_grobbulus();
+void AddSC_boss_razuvious();
+void AddSC_boss_kelthuzad();
+void AddSC_boss_loatheb();
+void AddSC_boss_noth();
+void AddSC_boss_gluth();
+void AddSC_boss_sapphiron();
+void AddSC_boss_four_horsemen();
+void AddSC_boss_faerlina();
+void AddSC_boss_heigan();
+void AddSC_boss_gothik();
+void AddSC_boss_thaddius();
+void AddSC_instance_naxxramas();
 void AddSC_boss_arcanist_doan();             //Scarlet Monastery
 void AddSC_boss_azshir_the_sleepless();
 void AddSC_boss_bloodmage_thalnos();
@@ -225,6 +241,22 @@ void AddEasternKingdomsScripts()
     AddSC_boss_majordomo();
     AddSC_boss_ragnaros();
     AddSC_instance_molten_core();
+	AddSC_boss_anubrekhan();            //Naxxramas
+    AddSC_boss_maexxna();
+    AddSC_boss_patchwerk();
+    AddSC_boss_grobbulus();
+    AddSC_boss_razuvious();
+    AddSC_boss_kelthuzad();
+    AddSC_boss_loatheb();
+    AddSC_boss_noth();
+    AddSC_boss_gluth();
+    AddSC_boss_sapphiron();
+    AddSC_boss_four_horsemen();
+    AddSC_boss_faerlina();
+    AddSC_boss_heigan();
+    AddSC_boss_gothik();
+    AddSC_boss_thaddius();
+    AddSC_instance_naxxramas();
     AddSC_boss_arcanist_doan();             //Scarlet Monastery
     AddSC_boss_azshir_the_sleepless();
     AddSC_boss_bloodmage_thalnos();
