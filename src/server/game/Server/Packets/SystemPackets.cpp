@@ -165,7 +165,7 @@ WorldPacket const* WorldPackets::System::FeatureSystemStatusGlueScreen::Write()
     _worldPacket << int32(MinimumExpansionLevel);
     _worldPacket << int32(MaximumExpansionLevel);
 
-    if (*LaunchETA)
+    if (LaunchETA)
         _worldPacket << int32(*LaunchETA);
 
     for (auto& region : LiveRegionCopySourceRegions)
