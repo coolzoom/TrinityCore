@@ -354,15 +354,23 @@ bool Creature::InitEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
 
     CreatureModel model = *ObjectMgr::ChooseDisplayId(cinfo, data);
     CreatureModelInfo const* minfo = sObjectMgr->GetCreatureModelRandomGender(&model, cinfo);
+
+    CreatureModelInfo modelInfo;
     if (!minfo)                                             // Cancel load if no model defined
     {
-        TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid model %u defined in table `creature_template`, can't load.", entry, model.CreatureDisplayID);
-        return false;
+        TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid model %u defined in table `creature_template`, giving default data.", entry, model.CreatureDisplayID);
+
+        // Hackfix for now.
+        modelInfo.combat_reach      = 1.5f;
+        modelInfo.bounding_radius   = 0.208000004291534423f;
+        modelInfo.gender            = Gender::GENDER_MALE;
     }
+    else
+        modelInfo = *minfo;
 
     SetDisplayId(model.CreatureDisplayID, model.DisplayScale);
     SetNativeDisplayId(model.CreatureDisplayID, model.DisplayScale);
-    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, minfo->gender);
+    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, modelInfo.gender);
 
     // Load creature equipment
     if (!data || data->equipmentId == 0)
