@@ -96,7 +96,7 @@ bool DB2StorageBase::Load(std::string const& path, uint32 locale, char**& indexT
         }
         catch (std::exception const& e)
         {
-            // TC_LOG_ERROR("misc", "An exception happend while loading '%s'\n%s\n", _fileName, e.what());
+            TC_LOG_ERROR("misc", "An exception happend while loading '%s'\n%s\n", _fileName, e.what());
             // printf("An exception happend while loading '%s'\n%s\n\n", _fileName.c_str(), e.what());
             return false;
         }
@@ -129,14 +129,13 @@ bool DB2StorageBase::LoadStringsFrom(std::string const& path, uint32 locale, cha
     DB2FileLoader db2;
     {
         DB2FileSystemSource source(path + _fileName);
+
         try
         {
             db2.Load(&source, _loadInfo);
-            return true;
         }
-        catch (std::exception const& e)
+        catch (std::exception const&)
         {
-            TC_LOG_ERROR("misc", "An exception happend while loading '%s'\n%s\n", _fileName, e.what());
             return false;
         }
     }
