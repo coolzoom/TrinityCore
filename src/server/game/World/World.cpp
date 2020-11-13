@@ -2115,8 +2115,9 @@ void World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Starting Outdoor PvP System");
     sOutdoorPvPMgr->InitOutdoorPvP();
 
-    TC_LOG_INFO("server.loading", "Loading Transports...");
-    sTransportMgr->SpawnContinentTransports();
+    // @TEMP: Disable because :middle_finger: (this crashes the game pog)
+    // TC_LOG_INFO("server.loading", "Loading Transports...");
+    // sTransportMgr->SpawnContinentTransports();
 
     ///- Initialize Warden
     TC_LOG_INFO("server.loading", "Loading Warden Checks...");
