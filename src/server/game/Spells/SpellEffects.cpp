@@ -4549,10 +4549,9 @@ void Spell::EffectDestroyAllTotems(SpellEffIndex /*effIndex*/)
             SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell_id);
             if (spellInfo)
             {
-                std::vector<SpellPowerCost> costs = spellInfo->CalcPowerCost(m_caster, spellInfo->GetSchoolMask());
-                auto m = std::find_if(costs.begin(), costs.end(), [](SpellPowerCost const& cost) { return cost.Power == POWER_MANA; });
-                if (m != costs.end())
-                    mana += m->Amount;
+                SpellPowerCost cost = spellInfo->CalcPowerCost(m_caster, spellInfo->GetSchoolMask());
+                if (cost.Power == POWER_MANA)
+                    mana += cost.Amount;
             }
 
             totem->ToTotem()->UnSummon();

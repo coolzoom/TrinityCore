@@ -2017,11 +2017,12 @@ SpellInfo const* Creature::reachWithSpellAttack(Unit* victim)
         if (bcontinue)
             continue;
 
-        std::vector<SpellPowerCost> costs = spellInfo->CalcPowerCost(this, SpellSchoolMask(spellInfo->SchoolMask));
-        auto m = std::find_if(costs.begin(), costs.end(), [](SpellPowerCost const& cost) { return cost.Power == POWER_MANA; });
-        if (m != costs.end())
-            if (m->Amount > GetPower(POWER_MANA))
+        SpellPowerCost const& cost = spellInfo->CalcPowerCost(this, SpellSchoolMask(spellInfo->SchoolMask));
+        if (cost.Power == POWER_MANA)
+        {
+            if (cost.Power > GetPower(POWER_MANA))
                 continue;
+        }
 
         float range = spellInfo->GetMaxRange(false);
         float minrange = spellInfo->GetMinRange(false);
@@ -2065,11 +2066,12 @@ SpellInfo const* Creature::reachWithSpellCure(Unit* victim)
         if (bcontinue)
             continue;
 
-        std::vector<SpellPowerCost> costs = spellInfo->CalcPowerCost(this, SpellSchoolMask(spellInfo->SchoolMask));
-        auto m = std::find_if(costs.begin(), costs.end(), [](SpellPowerCost const& cost) { return cost.Power == POWER_MANA; });
-        if (m != costs.end())
-            if (m->Amount > GetPower(POWER_MANA))
+        SpellPowerCost const& cost = spellInfo->CalcPowerCost(this, SpellSchoolMask(spellInfo->SchoolMask));
+        if (cost.Power == POWER_MANA)
+        {
+            if (cost.Power > GetPower(POWER_MANA))
                 continue;
+        }
 
         float range = spellInfo->GetMaxRange(true);
         float minrange = spellInfo->GetMinRange(true);

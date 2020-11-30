@@ -2920,6 +2920,7 @@ void Spell::prepare(SpellCastTargets const* targets, AuraEffect const* triggered
     // Fill cost data (do not use power for item casts)
     if (!m_CastItem)
         m_powerCost = m_spellInfo->CalcPowerCost(m_caster, m_spellSchoolMask);
+
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
 
@@ -3956,11 +3957,8 @@ void Spell::SendSpellStart()
 
     if ((m_caster->GetTypeId() == TYPEID_PLAYER ||
         (m_caster->GetTypeId() == TYPEID_UNIT && m_caster->IsPet()))
-        && std::find_if(m_powerCost.begin(), m_powerCost.end(), [](SpellPowerCost const& cost) { return cost.Power != POWER_HEALTH; }) != m_powerCost.end())
+        && m_powerCost.Power != POWER_HEALTH)
         castFlags |= CAST_FLAG_POWER_LEFT_SELF;
-
-    if (std::find_if(m_powerCost.begin(), m_powerCost.end(), [](SpellPowerCost const& cost) { return cost.Power == POWER_RUNES; }) != m_powerCost.end())
-        castFlags |= CAST_FLAG_NO_GCD; // not needed, but Blizzard sends it
 
     WorldPackets::Spells::SpellStart packet;
     WorldPackets::Spells::SpellCastData& castData = packet.Cast;
@@ -3983,39 +3981,10 @@ void Spell::SendSpellStart()
 
     if (castFlags & CAST_FLAG_POWER_LEFT_SELF)
     {
-        for (SpellPowerCost const& cost : m_powerCost)
-        {
-            WorldPackets::Spells::SpellPowerData powerData;
-            powerData.Type = cost.Power;
-            powerData.Cost = m_caster->GetPower(cost.Power);
-            castData.RemainingPower.push_back(powerData);
-        }
-    }
-
-    if (castFlags & CAST_FLAG_RUNE_LIST) // rune cooldowns list
-    {
-        castData.RemainingRunes = boost::in_place();
-
-        //TODO: There is a crash caused by a spell with CAST_FLAG_RUNE_LIST casted by a creature
-        //The creature is the mover of a player, so HandleCastSpellOpcode uses it as the caster
-        if (Player* player = m_caster->ToPlayer())
-        {
-            castData.RemainingRunes->Start = m_runesState; // runes state before
-            castData.RemainingRunes->Count = player->GetRunesState(); // runes state after
-            for (uint8 i = 0; i < player->GetMaxPower(POWER_RUNES); ++i)
-            {
-                // float casts ensure the division is performed on floats as we need float result
-                float baseCd = float(player->GetRuneBaseCooldown());
-                castData.RemainingRunes->Cooldowns.push_back((baseCd - float(player->GetRuneCooldown(i))) / baseCd * 255); // rune cooldown passed
-            }
-        }
-        else
-        {
-            castData.RemainingRunes->Start = 0;
-            castData.RemainingRunes->Count = 0;
-            for (uint8 i = 0; i < player->GetMaxPower(POWER_RUNES); ++i)
-                castData.RemainingRunes->Cooldowns.push_back(0);
-        }
+        WorldPackets::Spells::SpellPowerData powerData;
+        powerData.Type = m_powerCost.Power;
+        powerData.Cost = m_caster->GetPower(m_powerCost.Power);
+        castData.RemainingPower.push_back(powerData);
     }
 
     if (castFlags & CAST_FLAG_PROJECTILE)
@@ -4057,20 +4026,8 @@ void Spell::SendSpellGo()
 
     if ((m_caster->GetTypeId() == TYPEID_PLAYER ||
         (m_caster->GetTypeId() == TYPEID_UNIT && m_caster->IsPet()))
-        && std::find_if(m_powerCost.begin(), m_powerCost.end(), [](SpellPowerCost const& cost) { return cost.Power != POWER_HEALTH; }) != m_powerCost.end())
+        && m_powerCost.Power != POWER_HEALTH)
         castFlags |= CAST_FLAG_POWER_LEFT_SELF; // should only be sent to self, but the current messaging doesn't make that possible
-
-    if ((m_caster->GetTypeId() == TYPEID_PLAYER)
-        && (m_caster->getClass() == CLASS_DEATH_KNIGHT)
-        && std::find_if(m_powerCost.begin(), m_powerCost.end(), [](SpellPowerCost const& cost) { return cost.Power == POWER_RUNES; }) != m_powerCost.end()
-        && !(_triggeredCastFlags & TRIGGERED_IGNORE_POWER_AND_REAGENT_COST))
-    {
-        castFlags |= CAST_FLAG_NO_GCD;                       // not needed, but Blizzard sends it
-        castFlags |= CAST_FLAG_RUNE_LIST;                    // rune cooldowns list
-    }
-
-    if (HasEffect(SPELL_EFFECT_ACTIVATE_RUNE))
-        castFlags |= CAST_FLAG_RUNE_LIST;                    // rune cooldowns list
 
     if (m_targets.HasTraj())
         castFlags |= CAST_FLAG_ADJUST_MISSILE;
@@ -4101,13 +4058,10 @@ void Spell::SendSpellGo()
 
     if (castFlags & CAST_FLAG_POWER_LEFT_SELF)
     {
-        for (SpellPowerCost const& cost : m_powerCost)
-        {
-            WorldPackets::Spells::SpellPowerData powerData;
-            powerData.Type = cost.Power;
-            powerData.Cost = m_caster->GetPower(cost.Power);
-            castData.RemainingPower.push_back(powerData);
-        }
+        WorldPackets::Spells::SpellPowerData powerData;
+        powerData.Type = m_powerCost.Power;
+        powerData.Cost = m_caster->GetPower(m_powerCost.Power);
+        castData.RemainingPower.push_back(powerData);
     }
 
     if (castFlags & CAST_FLAG_RUNE_LIST) // rune cooldowns list
@@ -4526,123 +4480,35 @@ void Spell::TakeCastItem()
 
 void Spell::TakePower()
 {
-    if (m_CastItem || m_triggeredByAuraSpell)
+    if (m_CastItem || m_triggeredByAuraSpell /*|| IsChannelingVisual()*/)
         return;
 
-    //Don't take power if the spell is cast while .cheat power is enabled.
+    // Don't take power if the spell is cast while .cheat power is enabled.
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
         if (m_caster->ToPlayer()->GetCommandStatus(CHEAT_POWER))
             return;
     }
 
-    for (SpellPowerCost& cost : m_powerCost)
-    {
-        Powers powerType = Powers(cost.Power);
-        bool hit = true;
-        if (m_caster->GetTypeId() == TYPEID_PLAYER)
-        {
-            if (powerType == POWER_RAGE || powerType == POWER_ENERGY || powerType == POWER_RUNES)
-            {
-                ObjectGuid targetGUID = m_targets.GetUnitTargetGUID();
-                if (!targetGUID.IsEmpty())
-                {
-                    for (std::vector<TargetInfo>::iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
-                    {
-                        if (ihit->targetGUID == targetGUID)
-                        {
-                            if (ihit->missCondition != SPELL_MISS_NONE)
-                            {
-                                hit = false;
-                                //lower spell cost on fail (by talent aura)
-                                if (Player* modOwner = m_caster->ToPlayer()->GetSpellModOwner())
-                                    modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_SPELL_COST_REFUND_ON_FAIL, cost.Amount);
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (powerType == POWER_RUNES)
-        {
-            TakeRunePower(hit);
-            continue;
-        }
-
-        if (!cost.Amount)
-            continue;
-
-        // health as power used
-        if (powerType == POWER_HEALTH)
-        {
-            m_caster->ModifyHealth(-cost.Amount);
-            continue;
-        }
-
-        if (powerType >= MAX_POWERS)
-        {
-            TC_LOG_ERROR("spells", "Spell::TakePower: Unknown power type '%d'", powerType);
-            continue;
-        }
-
-        if (hit)
-            m_caster->ModifyPower(powerType, -cost.Amount);
-        else
-            m_caster->ModifyPower(powerType, -irand(0, cost.Amount / 4));
-    }
-}
-
-SpellCastResult Spell::CheckRuneCost() const
-{
-    int32 runeCost = std::accumulate(m_powerCost.begin(), m_powerCost.end(), 0, [](int32 totalCost, SpellPowerCost const& cost)
-    {
-        return totalCost + (cost.Power == POWER_RUNES ? cost.Amount : 0);
-    });
-
-    if (!runeCost)
-        return SPELL_CAST_OK;
-
-    Player* player = m_caster->ToPlayer();
-    if (!player)
-        return SPELL_CAST_OK;
-
-    if (player->getClass() != CLASS_DEATH_KNIGHT)
-        return SPELL_CAST_OK;
-
-    int32 readyRunes = 0;
-    for (int32 i = 0; i < player->GetMaxPower(POWER_RUNES); ++i)
-        if (player->GetRuneCooldown(i) == 0)
-            ++readyRunes;
-
-    if (readyRunes < runeCost)
-        return SPELL_FAILED_NO_POWER;                       // not sure if result code is correct
-
-    return SPELL_CAST_OK;
-}
-
-void Spell::TakeRunePower(bool didHit)
-{
-    if (m_caster->GetTypeId() != TYPEID_PLAYER || m_caster->getClass() != CLASS_DEATH_KNIGHT)
+    if (!m_spellInfo->PowerCost)
         return;
 
-    Player* player = m_caster->ToPlayer();
-    m_runesState = player->GetRunesState();                 // store previous state
+    Powers power = Powers(m_spellInfo->PowerCost->PowerType);
 
-    int32 runeCost = std::accumulate(m_powerCost.begin(), m_powerCost.end(), 0, [](int32 totalCost, SpellPowerCost const& cost)
+    // Health as power used.
+    if (power == POWER_HEALTH)
     {
-        return totalCost + (cost.Power == POWER_RUNES ? cost.Amount : 0);
-    });
-
-    for (int32 i = 0; i < player->GetMaxPower(POWER_RUNES); ++i)
-    {
-        if (!player->GetRuneCooldown(i) && runeCost > 0)
-        {
-            player->SetRuneCooldown(i, didHit ? player->GetRuneBaseCooldown() : uint32(RUNE_MISS_COOLDOWN));
-            --runeCost;
-        }
+        m_caster->ModifyHealth(-(int64)m_powerCost.Amount);
+        return;
     }
+
+    if (power >= MAX_POWERS)
+    {
+        TC_LOG_ERROR("spells", "Spell::TakePower: Unknown Power Type %d", power);
+        return;
+    }
+
+    m_caster->ModifyPower(power, -(int32)m_powerCost.Amount);
 }
 
 void Spell::TakeReagents()
@@ -6128,34 +5994,25 @@ SpellCastResult Spell::CheckPower() const
     if (m_CastItem)
         return SPELL_CAST_OK;
 
-    for (SpellPowerCost const& cost : m_powerCost)
+    // health as power used - need check health amount
+    if (m_powerCost.Power == POWER_HEALTH)
     {
-        // health as power used - need check health amount
-        if (cost.Power == POWER_HEALTH)
-        {
-            if (int32(m_caster->GetHealth()) <= cost.Amount)
-                return SPELL_FAILED_CASTER_AURASTATE;
-            continue;
-        }
-        // Check valid power type
-        if (cost.Power >= MAX_POWERS)
-        {
-            TC_LOG_ERROR("spells", "Spell::CheckPower: Unknown power type '%d'", cost.Power);
-            return SPELL_FAILED_UNKNOWN;
-        }
+        if (int32(m_caster->GetHealth()) <= m_powerCost.Amount)
+            return SPELL_FAILED_CASTER_AURASTATE;
 
-        //check rune cost only if a spell has PowerType == POWER_RUNES
-        if (cost.Power == POWER_RUNES)
-        {
-            SpellCastResult failReason = CheckRuneCost();
-            if (failReason != SPELL_CAST_OK)
-                return failReason;
-        }
-
-        // Check power amount
-        if (int32(m_caster->GetPower(cost.Power)) < cost.Amount)
-            return SPELL_FAILED_NO_POWER;
+        return SPELL_CAST_OK;
     }
+
+    // Check valid power type
+    if (m_powerCost.Power >= MAX_POWERS)
+    {
+        TC_LOG_ERROR("spells", "Spell::CheckPower: Unknown power type '%d'", m_powerCost.Power);
+        return SPELL_FAILED_UNKNOWN;
+    }
+
+    // Check power amount
+    if (int32(m_caster->GetPower(m_powerCost.Power)) < m_powerCost.Amount)
+        return SPELL_FAILED_NO_POWER;
 
     return SPELL_CAST_OK;
 }

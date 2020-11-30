@@ -656,11 +656,10 @@ class spell_sha_item_mana_surge : public SpellScriptLoader
             {
                 PreventDefaultAction();
 
-                std::vector<SpellPowerCost> const& costs = eventInfo.GetProcSpell()->GetPowerCost();
-                auto m = std::find_if(costs.begin(), costs.end(), [](SpellPowerCost const& cost) { return cost.Power == POWER_MANA; });
-                if (m != costs.end())
+                SpellPowerCost const& cost = eventInfo.GetProcSpell()->GetPowerCost();
+                if (cost.Power == POWER_MANA)
                 {
-                    int32 mana = CalculatePct(m->Amount, 35);
+                    int32 mana = CalculatePct(cost.Amount, 35);
                     if (mana > 0)
                         GetTarget()->CastCustomSpell(SPELL_SHAMAN_ITEM_MANA_SURGE, SPELLVALUE_BASE_POINT0, mana, GetTarget(), true, NULL, aurEff);
                 }

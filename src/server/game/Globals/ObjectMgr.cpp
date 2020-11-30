@@ -10433,3 +10433,70 @@ void ObjectMgr::LoadWorldSafeLocs()
 
     TC_LOG_INFO("server.loading", ">> Loaded %u world safe locs in %u ms", _worldSafeLocs.size(), GetMSTimeDiffToNow(oldMSTime));
 }
+
+void ObjectMgr::LoadSpellPowers()
+{
+    uint32 oldMSTime = getMSTime();
+
+    QueryResult result = WorldDatabase.PQuery("SELECT ID, SpellID, OrderIndex, ManaCost, ManaCostPerLevel, ManaPerSecond, PowerDisplayID, AltPowerBarID, PowerCostPct, PowerCostMaxPct, PowerPctPerSecond, PowerType, RequiredAuraSpellID, OptionalCost FROM spell_powers");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 spell powers. DB table `spell_powers` is empty.");
+        return;
+    }
+
+    do
+    {
+        Field* fields               = result->Fetch();
+
+        uint32 id                   = fields[0].GetUInt32();
+        int32 spellId               = fields[1].GetInt32();
+        uint8 orderIndex            = fields[2].GetUInt8();
+        int32 manaCost              = fields[3].GetInt32();
+        int32 manaCostPerLevel      = fields[4].GetInt32();
+        int32 manaPerSecond         = fields[5].GetInt32();
+        uint32 powerDisplayId       = fields[6].GetUInt32();
+        int32 altPowerBarId         = fields[7].GetInt32();
+        float powerCostPct          = fields[8].GetFloat();
+        float powerCostMaxPct       = fields[9].GetFloat();
+        float powerPctPerSecond     = fields[10].GetFloat();
+        int8 powerType              = fields[11].GetInt8();
+        int32 requiredAuraSpellID   = fields[12].GetInt32();
+        uint32 optionalCost         = fields[13].GetUInt32();
+
+        SpellPowerEntry entry {};
+        entry.ID                = id;
+        entry.SpellID           = spellId;
+        entry.OrderIndex        = orderIndex;
+        entry.ManaCost          = manaCost;
+        entry.ManaCostPerLevel  = manaCostPerLevel;
+        entry.ManaPerSecond     = manaPerSecond;
+        entry.PowerDisplayID    = powerDisplayId;
+        entry.AltPowerBarID     = altPowerBarId;
+        entry.PowerCostPct      = powerCostPct;
+        entry.PowerCostMaxPct   = powerCostMaxPct;
+        entry.PowerPctPerSecond = powerPctPerSecond;
+        entry.PowerType         = powerType;
+        entry.RequiredAuraSpellID = requiredAuraSpellID;
+        entry.OptionalCost      = optionalCost;
+
+        _spellPowerStorage.emplace(spellId, entry);
+    }
+    while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded %u spell powers in %u ms", _spellPowerStorage.size(), GetMSTimeDiffToNow(oldMSTime));
+}
+
+SpellPowerEntry const* ObjectMgr::GetSpellPower(uint32 spellId) const
+{
+    auto itr = _spellPowerStorage.find(spellId);
+    if (itr != _spellPowerStorage.end())
+        return &itr->second;
+
+    return nullptr;
+}
+
+void ObjectMgr::LoadSpellVisuals()
+{
+
+}

@@ -445,9 +445,8 @@ bool SpellMgr::CanSpellTriggerProcOnEvent(SpellProcEntry const& procEntry, ProcE
         if (!eventInfo.GetProcSpell())
             return false;
 
-        std::vector<SpellPowerCost> const& costs = eventInfo.GetProcSpell()->GetPowerCost();
-        auto m = std::find_if(costs.begin(), costs.end(), [](SpellPowerCost const& cost) { return cost.Amount > 0; });
-        if (m == costs.end())
+        SpellPowerCost const& cost = eventInfo.GetProcSpell()->GetPowerCost();
+        if (cost.Amount == 0)
             return false;
     }
 

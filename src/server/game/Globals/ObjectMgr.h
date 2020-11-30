@@ -500,6 +500,8 @@ typedef std::unordered_map<uint32, QuestObjectivesLocale> QuestObjectivesLocaleC
 typedef std::unordered_map<uint32, QuestOfferRewardLocale> QuestOfferRewardLocaleContainer;
 typedef std::unordered_map<uint32, QuestRequestItemsLocale> QuestRequestItemsLocaleContainer;
 typedef std::unordered_map<uint32, PageTextLocale> PageTextLocaleContainer;
+typedef std::unordered_map<uint32, SpellPowerEntry> SpellPowerContainer;
+typedef std::unordered_map<uint32, std::unordered_map<uint32, std::vector<SpellPowerEntry>>> SpellPowerDifficultyContainer;
 
 struct GossipMenuItemsLocale
 {
@@ -1278,6 +1280,11 @@ class TC_GAME_API ObjectMgr
         void LoadPlayerChoices();
         void LoadPlayerChoicesLocale();
 
+        void LoadSpellPowers();
+        SpellPowerEntry const* GetSpellPower(uint32 spellId) const;
+
+        void LoadSpellVisuals();
+
         std::string GeneratePetName(uint32 entry);
         uint32 GetBaseXP(uint8 level);
         uint32 GetXPForLevel(uint8 level) const;
@@ -1771,6 +1778,9 @@ class TC_GAME_API ObjectMgr
         RealmNameContainer _realmNameStore;
 
         SceneTemplateContainer _sceneTemplateStore;
+
+        SpellPowerContainer _spellPowerStorage;
+        SpellPowerDifficultyContainer _spellPowerDifficultyStorage;
 
         enum CreatureLinkedRespawnType
         {

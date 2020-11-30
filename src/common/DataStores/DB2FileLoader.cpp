@@ -1541,22 +1541,23 @@ void DB2FileLoader::Load(DB2FileSource* source, DB2FileLoadInfo const* loadInfo)
 
     if (!(_header.Flags & 0x1))
     {
-        std::size_t expectedFileSize =
+        int64 expectedFileSize =
             sizeof(DB2Header) +
             sizeof(DB2SectionHeader) * _header.SectionCount +
             sizeof(DB2FieldEntry) * _header.FieldCount +
-            _header.RecordCount * int64(_header.RecordSize) +
+            int64(_header.RecordSize) * _header.RecordCount +
             _header.StringTableSize +
-            (loadInfo->Meta->IndexField == -1 ? _header.RecordCount * sizeof(uint32) : 0) +
+            (loadInfo->Meta->IndexField == -1 ? sizeof(uint32) * _header.RecordCount : 0) +
             totalCopyTableSize +
             _header.ColumnMetaSize +
             _header.PalletDataSize +
             _header.CommonDataSize +
             totalParentLookupDataSize;
 
-        std::size_t sourceFileSize = source->GetFileSize();
+        /// @TODO: Fix for SpellPower and other DB2.
+        int64 sourceFileSize = source->GetFileSize();
         if (sourceFileSize != expectedFileSize)
-            throw DB2FileLoadException(Trinity::StringFormat("%s failed size consistency check, expected " SZFMTD ", got " SZFMTD, expectedFileSize, sourceFileSize));
+            throw DB2FileLoadException(Trinity::StringFormat("%s failed size consistency check, expected " SZFMTD ", got " SZFMTD, source->GetFileName(), expectedFileSize, sourceFileSize));
     }
 
     std::unique_ptr<DB2FieldEntry[]> fieldData = Trinity::make_unique<DB2FieldEntry[]>(_header.FieldCount);

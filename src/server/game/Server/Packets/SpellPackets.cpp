@@ -422,12 +422,14 @@ WorldPacket const* WorldPackets::Spells::SpellStart::Write()
 
 WorldPacket const* WorldPackets::Spells::SpellGo::Write()
 {
-    *this << Cast;
+    _worldPacket << Cast;
 
-    WriteLogDataBit();
-    FlushBits();
+    _worldPacket.FlushBits();
+    _worldPacket.WriteBit(false); //< Log Data
 
-    WriteLogData();
+    // WriteLogDataBit();
+    // FlushBits();
+    // WriteLogData();
 
     return &_worldPacket;
 }

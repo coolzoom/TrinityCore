@@ -1593,6 +1593,12 @@ void World::SetInitialWorldSettings()
     MMAP::MMapManager* mmmgr = MMAP::MMapFactory::createOrGetMMapManager();
     mmmgr->InitializeThreadUnsafe(mapData);
 
+    TC_LOG_INFO("server.loading", "Loading Spell Powers...");
+    sObjectMgr->LoadSpellPowers();
+
+    TC_LOG_INFO("server.loading", "Loading Spell Visuals...");
+    sObjectMgr->LoadSpellVisuals();
+
     TC_LOG_INFO("server.loading", "Loading SpellInfo store...");
     sSpellMgr->LoadSpellInfoStore();
 

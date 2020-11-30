@@ -479,7 +479,7 @@ class TC_GAME_API SpellInfo
         uint32 BaseLevel;
         uint32 SpellLevel;
         SpellDurationEntry const* DurationEntry;
-        std::vector<SpellPowerEntry const*> PowerCosts;
+        SpellPowerEntry const* PowerCost;
         uint32 RangeIndex;
         SpellRangeEntry const* RangeEntry;
         float  Speed;
@@ -635,7 +635,7 @@ class TC_GAME_API SpellInfo
         uint32 CalcCastTime(uint8 level = 0, Spell* spell = NULL) const;
         uint32 GetRecoveryTime() const;
 
-        std::vector<SpellPowerCost> CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) const;
+        SpellPowerCost CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) const;
 
         float CalcProcPPM(Unit* caster, int32 itemLevel) const;
 
