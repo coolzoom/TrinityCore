@@ -786,8 +786,7 @@ void Player::UpdateManaRegen()
     // Apply PCT bonus from SPELL_AURA_MOD_MANA_REGEN_PCT
     base_regen *= GetTotalAuraMultiplierByMiscValue(SPELL_AURA_MOD_MANA_REGEN_PCT, POWER_MANA);
 
-    SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + manaIndex, base_regen);
-    SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + manaIndex, base_regen);
+    SetStatFloatValue(UNIT_FIELD_MOD_POWER_REGEN + manaIndex, base_regen);
 }
 
 void Player::UpdateAllRunesRegen()
@@ -802,8 +801,7 @@ void Player::UpdateAllRunesRegen()
     PowerTypeEntry const* runeEntry = sDB2Manager.GetPowerTypeEntry(POWER_RUNES);
 
     uint32 cooldown = GetRuneBaseCooldown();
-    SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + runeIndex, float(1 * IN_MILLISECONDS) / float(cooldown) - runeEntry->RegenPeace);
-    SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + runeIndex, float(1 * IN_MILLISECONDS) / float(cooldown) - runeEntry->RegenCombat);
+    SetStatFloatValue(UNIT_FIELD_MOD_POWER_REGEN + runeIndex, float(1 * IN_MILLISECONDS) / float(cooldown) - runeEntry->RegenPeace);
 }
 
 void Player::_ApplyAllStatBonuses()

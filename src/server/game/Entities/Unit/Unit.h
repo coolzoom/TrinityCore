@@ -1048,10 +1048,10 @@ class TC_GAME_API Unit : public WorldObject
         }
 
         int32 GetResistance(SpellSchools school) const { return GetUInt32Value(UNIT_FIELD_RESISTANCES + school); }
-        int32 GetBonusResistanceMod(SpellSchools school) const { return GetUInt32Value(UNIT_FIELD_BONUS_RESISTANCE_MODS + school); }
+        int32 GetBonusResistanceMod(SpellSchools school) const { return GetUInt32Value(UNIT_FIELD_RESISTANCE_BUFF_MODS_POSITIVE + school); }
         int32 GetResistance(SpellSchoolMask mask) const;
         void SetResistance(SpellSchools school, int32 val) { SetStatInt32Value(UNIT_FIELD_RESISTANCES + school, val); }
-        void SetBonusResistanceMod(SpellSchools school, int32 val) { SetStatInt32Value(UNIT_FIELD_BONUS_RESISTANCE_MODS + school, val); }
+        void SetBonusResistanceMod(SpellSchools school, int32 val) { SetStatInt32Value(UNIT_FIELD_RESISTANCE_BUFF_MODS_POSITIVE + school, val); }
 
         uint64 GetHealth()    const { return GetUInt64Value(UNIT_FIELD_HEALTH); }
         uint64 GetMaxHealth() const { return GetUInt64Value(UNIT_FIELD_MAXHEALTH); }

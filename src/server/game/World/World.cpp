@@ -1593,6 +1593,12 @@ void World::SetInitialWorldSettings()
     MMAP::MMapManager* mmmgr = MMAP::MMapFactory::createOrGetMMapManager();
     mmmgr->InitializeThreadUnsafe(mapData);
 
+    TC_LOG_INFO("server.loading", "Loading Spell Powers...");
+    sObjectMgr->LoadSpellPowers();
+
+    TC_LOG_INFO("server.loading", "Loading Spell Visuals...");
+    sObjectMgr->LoadSpellVisuals();
+
     TC_LOG_INFO("server.loading", "Loading SpellInfo store...");
     sSpellMgr->LoadSpellInfoStore();
 
@@ -2115,8 +2121,9 @@ void World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Starting Outdoor PvP System");
     sOutdoorPvPMgr->InitOutdoorPvP();
 
-    TC_LOG_INFO("server.loading", "Loading Transports...");
-    sTransportMgr->SpawnContinentTransports();
+    // @TEMP: Disable because :middle_finger: (this crashes the game pog)
+    // TC_LOG_INFO("server.loading", "Loading Transports...");
+    // sTransportMgr->SpawnContinentTransports();
 
     ///- Initialize Warden
     TC_LOG_INFO("server.loading", "Loading Warden Checks...");

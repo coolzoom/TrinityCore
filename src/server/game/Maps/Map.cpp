@@ -604,13 +604,13 @@ bool Map::AddPlayerToMap(Player* player, bool initPlayer /*= true*/)
     if (initPlayer)
         SendInitSelf(player);
 
-    SendInitTransports(player);
+    // SendInitTransports(player);
 
     if (initPlayer)
         player->m_clientGUIDs.clear();
 
     player->UpdateObjectVisibility(false);
-    PhasingHandler::SendToPlayer(player);
+    // PhasingHandler::SendToPlayer(player);
 
     if (player->IsAlive())
         ConvertCorpseToBones(player->GetGUID());

@@ -22,6 +22,7 @@
 #include "ConditionMgr.h"
 #include "DBCEnums.h"
 #include "ObjectGuid.h"
+#include "SpellInfo.h"
 #include "Position.h"
 #include "SharedDefines.h"
 #include <memory>
@@ -52,7 +53,6 @@ class SpellInfo;
 class SpellScript;
 class Unit;
 class WorldObject;
-struct SpellPowerCost;
 struct SummonPropertiesEntry;
 enum AuraType : uint32;
 enum CurrentSpellTypes : uint8;
@@ -519,7 +519,6 @@ class TC_GAME_API Spell
         void finish(bool ok = true);
         void TakePower();
 
-        void TakeRunePower(bool didHit);
         void TakeReagents();
         void TakeCastItem();
 
@@ -536,7 +535,6 @@ class TC_GAME_API Spell
         SpellCastResult CheckItems(uint32* param1, uint32* param2) const;
         SpellCastResult CheckRange(bool strict) const;
         SpellCastResult CheckPower() const;
-        SpellCastResult CheckRuneCost() const;
         SpellCastResult CheckCasterAuras(uint32* param1) const;
         SpellCastResult CheckArenaAndRatedBattlegroundCastRules();
 
@@ -666,7 +664,7 @@ class TC_GAME_API Spell
         Unit* GetCaster() const { return m_caster; }
         Unit* GetOriginalCaster() const { return m_originalCaster; }
         SpellInfo const* GetSpellInfo() const { return m_spellInfo; }
-        std::vector<SpellPowerCost> const& GetPowerCost() const { return m_powerCost; }
+        SpellPowerCost const& GetPowerCost() const { return m_powerCost; }
 
         bool UpdatePointers();                              // must be used at call Spell code after time delay (non triggered spell cast/update spell call/etc)
 
@@ -711,7 +709,7 @@ class TC_GAME_API Spell
         SpellSchoolMask m_spellSchoolMask;                  // Spell school (can be overwrite for some spells (wand shoot for example)
         WeaponAttackType m_attackType;                      // For weapon based attack
 
-        std::vector<SpellPowerCost> m_powerCost;       // Calculated spell cost initialized only in Spell::prepare
+        SpellPowerCost m_powerCost;                         // Calculated spell cost initialized only in Spell::prepare
         int32 m_casttime;                                   // Calculated spell cast time initialized only in Spell::prepare
         int32 m_channeledDuration;                          // Calculated channeled spell duration in order to calculate correct pushback.
         bool m_canReflect;                                  // can reflect this spell?
@@ -864,7 +862,7 @@ class TC_GAME_API Spell
         void CalculateJumpSpeeds(SpellEffectInfo const* effInfo, float dist, float& speedxy, float& speedz);
 
         void UpdateSpellCastDataTargets(WorldPackets::Spells::SpellCastData& data);
-        void UpdateSpellCastDataAmmo(WorldPackets::Spells::SpellAmmo& data);
+        void UpdateSpellCastDataAmmo(WorldPackets::Spells::SpellCastData& data);
 
         SpellCastResult CanOpenLock(uint32 effIndex, uint32 lockid, SkillType& skillid, int32& reqSkillValue, int32& skillValue);
         // -------------------------------------------

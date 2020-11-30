@@ -359,11 +359,12 @@ namespace WorldPackets
             std::vector<SpellPowerData> RemainingPower;
             Optional<RuneData> RemainingRunes;
             MissileTrajectoryResult MissileTrajectory;
-            SpellAmmo Ammo;
             uint8 DestLocSpellCastIndex = 0;
             std::vector<TargetLocation> TargetPoints;
             CreatureImmunities Immunities;
             SpellHealPrediction Predict;
+            Optional<int32> AmmoDisplayID;
+            Optional<int32> AmmoInventoryType;
         };
 
         class SpellGo final : public CombatLog::CombatLogServerPacket

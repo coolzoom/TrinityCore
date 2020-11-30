@@ -354,15 +354,23 @@ bool Creature::InitEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
 
     CreatureModel model = *ObjectMgr::ChooseDisplayId(cinfo, data);
     CreatureModelInfo const* minfo = sObjectMgr->GetCreatureModelRandomGender(&model, cinfo);
+
+    CreatureModelInfo modelInfo;
     if (!minfo)                                             // Cancel load if no model defined
     {
-        TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid model %u defined in table `creature_template`, can't load.", entry, model.CreatureDisplayID);
-        return false;
+        TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid model %u defined in table `creature_template`, giving default data.", entry, model.CreatureDisplayID);
+
+        // Hackfix for now.
+        modelInfo.combat_reach      = 1.5f;
+        modelInfo.bounding_radius   = 0.208000004291534423f;
+        modelInfo.gender            = Gender::GENDER_MALE;
     }
+    else
+        modelInfo = *minfo;
 
     SetDisplayId(model.CreatureDisplayID, model.DisplayScale);
     SetNativeDisplayId(model.CreatureDisplayID, model.DisplayScale);
-    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, minfo->gender);
+    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, modelInfo.gender);
 
     // Load creature equipment
     if (!data || data->equipmentId == 0)
@@ -2009,11 +2017,12 @@ SpellInfo const* Creature::reachWithSpellAttack(Unit* victim)
         if (bcontinue)
             continue;
 
-        std::vector<SpellPowerCost> costs = spellInfo->CalcPowerCost(this, SpellSchoolMask(spellInfo->SchoolMask));
-        auto m = std::find_if(costs.begin(), costs.end(), [](SpellPowerCost const& cost) { return cost.Power == POWER_MANA; });
-        if (m != costs.end())
-            if (m->Amount > GetPower(POWER_MANA))
+        SpellPowerCost const& cost = spellInfo->CalcPowerCost(this, SpellSchoolMask(spellInfo->SchoolMask));
+        if (cost.Power == POWER_MANA)
+        {
+            if (cost.Power > GetPower(POWER_MANA))
                 continue;
+        }
 
         float range = spellInfo->GetMaxRange(false);
         float minrange = spellInfo->GetMinRange(false);
@@ -2057,11 +2066,12 @@ SpellInfo const* Creature::reachWithSpellCure(Unit* victim)
         if (bcontinue)
             continue;
 
-        std::vector<SpellPowerCost> costs = spellInfo->CalcPowerCost(this, SpellSchoolMask(spellInfo->SchoolMask));
-        auto m = std::find_if(costs.begin(), costs.end(), [](SpellPowerCost const& cost) { return cost.Power == POWER_MANA; });
-        if (m != costs.end())
-            if (m->Amount > GetPower(POWER_MANA))
+        SpellPowerCost const& cost = spellInfo->CalcPowerCost(this, SpellSchoolMask(spellInfo->SchoolMask));
+        if (cost.Power == POWER_MANA)
+        {
+            if (cost.Power > GetPower(POWER_MANA))
                 continue;
+        }
 
         float range = spellInfo->GetMaxRange(true);
         float minrange = spellInfo->GetMinRange(true);

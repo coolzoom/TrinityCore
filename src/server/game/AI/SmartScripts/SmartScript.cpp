@@ -654,27 +654,20 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
 
                             bool _allowMove = false;
                             SpellInfo const* spellInfo = sSpellMgr->AssertSpellInfo(e.action.cast.spell);
-                            std::vector<SpellPowerCost> costs = spellInfo->CalcPowerCost(me, spellInfo->GetSchoolMask());
-                            bool hasPower = true;
-                            for (SpellPowerCost const& cost : costs)
-                            {
-                                if (cost.Power == POWER_HEALTH)
-                                {
-                                    if (me->GetHealth() <= uint32(cost.Amount))
-                                    {
-                                        hasPower = false;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    if (me->GetPower(cost.Power) < cost.Amount)
-                                    {
-                                        hasPower = false;
-                                        break;
-                                    }
-                                }
+                            if (!spellInfo)
+                                continue;
 
+                            bool hasPower = true;
+                            SpellPowerCost const& cost = spellInfo->CalcPowerCost(me, spellInfo->GetSchoolMask());
+                            if (cost.Power == POWER_HEALTH)
+                            {
+                                if (me->GetHealth() <= uint32(cost.Amount))
+                                    hasPower = false;
+                            }
+                            else
+                            {
+                                if (me->GetPower(cost.Power) < cost.Amount)
+                                    hasPower = false;
                             }
 
                             if (me->GetDistance(*itr) > spellInfo->GetMaxRange(true) ||

@@ -80,6 +80,7 @@ void WorldSession::HandleCreatureQuery(WorldPackets::Query::QueryCreature& packe
 
         WorldPackets::Query::CreatureStats& stats = response.Stats;
 
+        stats.Civilian = creatureInfo->Civilian;
         stats.Leader = creatureInfo->RacialLeader;
 
         stats.Name[0] = creatureInfo->Name;
@@ -89,8 +90,9 @@ void WorldSession::HandleCreatureQuery(WorldPackets::Query::QueryCreature& packe
         stats.Flags[1] = creatureInfo->type_flags2;
 
         stats.CreatureType = creatureInfo->type;
-        stats.CreatureFamily = creatureInfo->family;
+        stats.CreatureFamily = int32(creatureInfo->family);
         stats.Classification = creatureInfo->rank;
+        stats.PetSpellDataID = creatureInfo->PetSpellDataID;
 
         for (uint32 i = 0; i < MAX_KILL_CREDIT; ++i)
             stats.ProxyCreatureID[i] = creatureInfo->KillCredit[i];

@@ -131,10 +131,29 @@ void WorldPackets::Inspect::RequestHonorStats::Read()
 WorldPacket const* WorldPackets::Inspect::InspectHonorStats::Write()
 {
     _worldPacket << PlayerGUID;
-    _worldPacket << uint8(LifetimeMaxRank);
-    _worldPacket << uint16(YesterdayHK); /// @todo: confirm order
-    _worldPacket << uint16(TodayHK); /// @todo: confirm order
+
+    _worldPacket << uint8(LifetimeRank);
+    _worldPacket << uint16(SessionHK);
+    _worldPacket << uint16(SessionDK);
+
+    _worldPacket << uint16(YesterdayHK);
+    _worldPacket << uint16(YesterdayDK);
+
+    _worldPacket << uint16(LastWeekHK);
+    _worldPacket << uint16(LastWeekDK);
+
+    _worldPacket << uint16(ThisWeekHK);
+    _worldPacket << uint16(ThisWeekDK);
+
     _worldPacket << uint32(LifetimeHK);
+    _worldPacket << uint32(LifetimeDK);
+
+    _worldPacket << uint32(YesterdayHonor);
+    _worldPacket << uint32(LastWeekHonor);
+    _worldPacket << uint32(ThisWeekHonor);
+    _worldPacket << uint32(LastWeekStanding);
+
+    _worldPacket << uint8(HonorProgress);
 
     return &_worldPacket;
 }

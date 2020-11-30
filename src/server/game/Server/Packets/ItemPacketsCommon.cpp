@@ -149,11 +149,7 @@ ByteBuffer& operator>>(ByteBuffer& data, WorldPackets::Item::ItemBonusInstanceDa
     data >> bonusListIdSize;
 
     for (uint32 i = 0u; i < bonusListIdSize; ++i)
-    {
-        uint32 bonusId;
-        data >> bonusId;
-        itemBonusInstanceData.BonusListIDs.push_back(bonusId);
-    }
+        itemBonusInstanceData.BonusListIDs.push_back(data.read<uint32>());
 
     return data;
 }

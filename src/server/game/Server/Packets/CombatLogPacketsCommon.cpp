@@ -39,12 +39,11 @@ void WorldPackets::Spells::SpellCastLogData::Initialize(Spell const* spell)
     Armor = spell->GetCaster()->GetArmor();
     Powers primaryPowerType = spell->GetCaster()->GetPowerType();
     bool primaryPowerAdded = false;
-    for (SpellPowerCost const& cost : spell->GetPowerCost())
-    {
-        PowerData.emplace_back(int32(cost.Power), spell->GetCaster()->GetPower(Powers(cost.Power)), int32(cost.Amount));
-        if (cost.Power == primaryPowerType)
-            primaryPowerAdded = true;
-    }
+
+    SpellPowerCost const& cost = spell->GetPowerCost();
+    PowerData.emplace_back(int32(cost.Power), spell->GetCaster()->GetPower(Powers(cost.Power)), int32(cost.Amount));
+    if (cost.Power == primaryPowerType)
+        primaryPowerAdded = true;
 
     if (!primaryPowerAdded)
         PowerData.insert(PowerData.begin(), SpellLogPowerData(int32(primaryPowerType), spell->GetCaster()->GetPower(primaryPowerType), 0));

@@ -402,8 +402,7 @@ typedef std::unordered_map<uint32, SpellEffectInfoVector> SpellEffectInfoMap;
 typedef std::vector<SpellEffectEntry const*> SpellEffectEntryVector;
 typedef std::unordered_map<uint32, SpellEffectEntryVector> SpellEffectEntryMap;
 
-typedef std::vector<SpellXSpellVisualEntry const*> SpellVisualVector;
-typedef std::unordered_map<uint32, SpellVisualVector> SpellVisualMap;
+typedef std::unordered_map<uint32, SpellXSpellVisualEntry const*> SpellVisualMap;
 
 typedef std::vector<AuraEffect*> AuraEffectVector;
 
@@ -479,7 +478,7 @@ class TC_GAME_API SpellInfo
         uint32 BaseLevel;
         uint32 SpellLevel;
         SpellDurationEntry const* DurationEntry;
-        std::vector<SpellPowerEntry const*> PowerCosts;
+        SpellPowerEntry const* PowerCost;
         uint32 RangeIndex;
         SpellRangeEntry const* RangeEntry;
         float  Speed;
@@ -518,7 +517,7 @@ class TC_GAME_API SpellInfo
         uint32 ExplicitTargetMask;
         SpellChainNode const* ChainEntry;
 
-        SpellInfo(SpellInfoLoadHelper const& data, SpellEffectEntryMap const& effectsMap, SpellVisualMap&& visuals);
+        SpellInfo(SpellInfoLoadHelper const& data, SpellEffectEntryMap const& effectsMap, SpellXSpellVisualEntry visual);
         ~SpellInfo();
 
         uint32 GetCategory() const;
@@ -635,7 +634,7 @@ class TC_GAME_API SpellInfo
         uint32 CalcCastTime(uint8 level = 0, Spell* spell = NULL) const;
         uint32 GetRecoveryTime() const;
 
-        std::vector<SpellPowerCost> CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) const;
+        SpellPowerCost CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) const;
 
         float CalcProcPPM(Unit* caster, int32 itemLevel) const;
 
@@ -685,7 +684,7 @@ class TC_GAME_API SpellInfo
 
     private:
         SpellEffectInfoMap _effects;
-        SpellVisualMap _visuals;
+        SpellXSpellVisualEntry _visual;
         bool _hasPowerDifficultyData;
         SpellSpecificType _spellSpecific;
         AuraStateType _auraState;

@@ -2313,17 +2313,22 @@ ItemDisenchantLootEntry const* Item::GetDisenchantLoot(ItemTemplate const* itemT
     return nullptr;
 }
 
-uint32 Item::GetDisplayId(Player const* owner) const
+uint32 Item::GetDisplayId() const
 {
-    ItemModifier transmogModifier = ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS;
-    if (HasFlag(ITEM_FIELD_MODIFIERS_MASK, AppearanceModifierMaskSpecSpecific))
-        transmogModifier = AppearanceModifierSlotBySpec[owner->GetActiveTalentGroup()];
+    auto itemEntry = sItemStore[GetEntry()];
+    if (!itemEntry)
+        return 0;
 
-    if (ItemModifiedAppearanceEntry const* transmog = sItemModifiedAppearanceStore.LookupEntry(GetModifier(transmogModifier)))
-        if (ItemAppearanceEntry const* itemAppearance = sItemAppearanceStore.LookupEntry(transmog->ItemAppearanceID))
-            return itemAppearance->ItemDisplayInfoID;
+    return itemEntry->DisplayInfoID;
+}
 
-    return sDB2Manager.GetItemDisplayId(GetEntry(), GetAppearanceModId());
+uint32 Item::GetInventoryType() const
+{
+    auto itemEntry = sItemStore[GetEntry()];
+    if (!itemEntry)
+        return 0;
+
+    return itemEntry->InventoryType;
 }
 
 ItemModifiedAppearanceEntry const* Item::GetItemModifiedAppearance() const

@@ -107,10 +107,28 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             ObjectGuid PlayerGUID;
-            uint32 LifetimeHK     = 0;
-            uint16 YesterdayHK    = 0;
-            uint16 TodayHK        = 0;
-            uint8 LifetimeMaxRank = 0;
+            uint8 LifetimeRank      = 0;
+
+            uint16 SessionHK        = 0;
+            uint16 SessionDK        = 0;
+
+            uint16 YesterdayHK      = 0;
+            uint16 YesterdayDK      = 0;
+            uint32 YesterdayHonor   = 0;
+
+            uint16 LastWeekHK       = 0;
+            uint16 LastWeekDK       = 0;
+            uint32 LastWeekHonor    = 0;
+
+            uint16 ThisWeekHK       = 0;
+            uint16 ThisWeekDK       = 0;
+            uint32 ThisWeekHonor    = 0;
+
+            uint32 LifetimeHK       = 0;
+            uint32 LifetimeDK       = 0;
+
+            uint32 LastWeekStanding = 0;
+            uint8 HonorProgress     = 0;
         };
 
         class InspectPVPRequest final : public ClientPacket

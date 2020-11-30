@@ -68,7 +68,7 @@ public:
         if (!handler->extractPlayerTarget((char*)args, &target))
             return false;
 
-        target->SetUInt32Value(ACTIVE_PLAYER_FIELD_KILLS, 0);
+        target->SetUInt32Value(ACTIVE_PLAYER_FIELD_LIFETIME_DISHONORABLE_KILLS, 0);
         target->SetUInt32Value(ACTIVE_PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, 0);
 
 

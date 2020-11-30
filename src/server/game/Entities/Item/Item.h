@@ -274,7 +274,8 @@ class TC_GAME_API Item : public Object
         void SetAppearanceModId(uint32 appearanceModId) { SetUInt32Value(ITEM_FIELD_APPEARANCE_MOD_ID, appearanceModId); }
         uint32 GetArmor(Player const* owner) const { return GetTemplate()->GetArmor(GetItemLevel(owner)); }
         void GetDamage(Player const* owner, float& minDamage, float& maxDamage) const { GetTemplate()->GetDamage(GetItemLevel(owner), minDamage, maxDamage); }
-        uint32 GetDisplayId(Player const* owner) const;
+        uint32 GetDisplayId() const;
+        uint32 GetInventoryType() const;
         ItemModifiedAppearanceEntry const* GetItemModifiedAppearance() const;
         float GetRepairCostMultiplier() const { return _bonusData.RepairCostMultiplier; }
         uint32 GetScalingStatDistribution() const { return _bonusData.ScalingStatDistribution; }

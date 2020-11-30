@@ -351,10 +351,9 @@ m_isRemoved(false), m_isSingleTarget(false), m_isUsingCharges(false), m_dropEven
 m_procCooldown(std::chrono::steady_clock::time_point::min()),
 m_lastProcAttemptTime(std::chrono::steady_clock::now() - Seconds(10)), m_lastProcSuccessTime(std::chrono::steady_clock::now() - Seconds(120))
 {
-    std::vector<SpellPowerEntry const*> powers = sDB2Manager.GetSpellPowers(GetId(), caster ? caster->GetMap()->GetDifficultyID() : DIFFICULTY_NONE);
-    for (SpellPowerEntry const* power : powers)
-        if (power->ManaPerSecond != 0 || power->PowerPctPerSecond > 0.0f)
-            m_periodicCosts.push_back(power);
+    SpellPowerEntry const* power = sObjectMgr->GetSpellPower(GetId());
+    if (power && (power->ManaPerSecond != 0 || power->PowerPctPerSecond > 0.0f))
+        m_periodicCosts.push_back(power);
 
     if (!m_periodicCosts.empty())
         m_timeCla = 1 * IN_MILLISECONDS;

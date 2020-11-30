@@ -90,10 +90,8 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             float NewSpeed = 0.0f;
-            int32 ServerTimeHolidayOffset = 0;
             uint32 GameTime = 0;
             uint32 ServerTime = 0;
-            int32 GameTimeHolidayOffset = 0;
         };
 
         class SetCurrency final : public ServerPacket

@@ -2532,6 +2532,9 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         std::unordered_map<uint32 /*overridenSpellId*/, std::unordered_set<uint32> /*newSpellId*/> m_overrideSpells;
         uint32 m_lastPotionId;                              // last used health/mana potion in combat, that block next potion use
 
+        uint8 m_activeSpec;
+        uint8 m_specsCount;
+
         SpecializationInfo _specializationInfo;
 
         ActionButtonList m_actionButtons;
@@ -2588,6 +2591,8 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         bool m_canTitanGrip;
         uint32 m_titanGripPenaltySpellId;
         uint8 m_swingErrorMsg;
+
+        uint32 m_usedTalentCount;
 
         // Social
         PlayerSocial* m_social;

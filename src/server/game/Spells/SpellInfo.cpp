@@ -1033,7 +1033,7 @@ SpellEffectInfo::StaticData SpellEffectInfo::_data[TOTAL_SPELL_EFFECTS] =
     {EFFECT_IMPLICIT_TARGET_EXPLICIT, TARGET_OBJECT_TYPE_ITEM}, // 261 SPELL_EFFECT_SCRAP_ITEM
 };
 
-SpellInfo::SpellInfo(SpellInfoLoadHelper const& data, SpellEffectEntryMap const& effectsMap, SpellVisualMap&& visuals)
+SpellInfo::SpellInfo(SpellInfoLoadHelper const& data, SpellEffectEntryMap const& effectsMap, SpellXSpellVisualEntry visual)
     : _hasPowerDifficultyData(false)
 {
     Id = data.Entry->ID;
@@ -1076,10 +1076,7 @@ SpellInfo::SpellInfo(SpellInfoLoadHelper const& data, SpellEffectEntryMap const&
     IconFileDataId = _misc ? _misc->SpellIconFileDataID : 0;
     ActiveIconFileDataId = _misc ? _misc->ActiveIconFileDataID : 0;
 
-    _visuals = std::move(visuals);
-    // sort all visuals so that the ones without a condition requirement are last on the list
-    for (auto& visualPair : _visuals)
-        std::sort(visualPair.second.begin(), visualPair.second.end(), [](SpellXSpellVisualEntry const* first, SpellXSpellVisualEntry const* second) { return first->CasterPlayerConditionID > second->CasterPlayerConditionID; });
+    _visual = visual;
 
     // SpellScalingEntry
     SpellScalingEntry const* _scaling = data.Scaling;
@@ -1165,7 +1162,7 @@ SpellInfo::SpellInfo(SpellInfoLoadHelper const& data, SpellEffectEntryMap const&
     SpellLevel = _levels ? _levels->SpellLevel : 0;
 
     // SpellPowerEntry
-    PowerCosts = sDB2Manager.GetSpellPowers(Id, DIFFICULTY_NONE, &_hasPowerDifficultyData);
+    PowerCost = sObjectMgr->GetSpellPower(Id);
 
     // SpellReagentsEntry
     SpellReagentsEntry const* _reagents = data.Reagents;
@@ -3699,195 +3696,156 @@ uint32 SpellInfo::GetRecoveryTime() const
     return RecoveryTime > CategoryRecoveryTime ? RecoveryTime : CategoryRecoveryTime;
 }
 
-std::vector<SpellPowerCost> SpellInfo::CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) const
+SpellPowerCost SpellInfo::CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) const
 {
-    std::vector<SpellPowerCost> costs;
-    auto collector = [this, caster, schoolMask, &costs](std::vector<SpellPowerEntry const*> const& powers)
+    SpellPowerCost cost{};
+
+    auto power = sObjectMgr->GetSpellPower(Id);
+    if (!power)
+        return cost;
+
+    int32 healthCost = 0;
+
+    if (power->RequiredAuraSpellID && !caster->HasAura(power->RequiredAuraSpellID))
+        return cost;
+
+    // Spell drain all exist power on cast (Only paladin lay of Hands)
+    if (HasAttribute(SPELL_ATTR1_DRAIN_ALL_POWER))
     {
-        costs.reserve(powers.size());
-        int32 healthCost = 0;
-
-
-        for (SpellPowerEntry const* power : powers)
+        // If power type - health drain all
+        if (power->PowerType == POWER_HEALTH)
         {
-            if (power->RequiredAuraSpellID && !caster->HasAura(power->RequiredAuraSpellID))
-                continue;
-
-            // Spell drain all exist power on cast (Only paladin lay of Hands)
-            if (HasAttribute(SPELL_ATTR1_DRAIN_ALL_POWER))
-            {
-                // If power type - health drain all
-                if (power->PowerType == POWER_HEALTH)
-                {
-                    healthCost = caster->GetHealth();
-                    continue;
-                }
-                // Else drain all power
-                if (power->PowerType < MAX_POWERS)
-                {
-                    SpellPowerCost cost;
-                    cost.Power = Powers(power->PowerType);
-                    cost.Amount = caster->GetPower(cost.Power);
-                    costs.push_back(cost);
-                    continue;
-                }
-
-                TC_LOG_ERROR("spells", "SpellInfo::CalcPowerCost: Unknown power type '%d' in spell %d", power->PowerType, Id);
-                continue;
-            }
-
-            // Base powerCost
-            int32 powerCost = power->ManaCost;
-            // PCT cost from total amount
-            if (power->PowerCostPct)
-            {
-                switch (power->PowerType)
-                {
-                    // health as power used
-                    case POWER_HEALTH:
-                        powerCost += int32(CalculatePct(caster->GetMaxHealth(), power->PowerCostPct));
-                        break;
-                    case POWER_MANA:
-                        powerCost += int32(CalculatePct(caster->GetCreateMana(), power->PowerCostPct));
-                        break;
-                    case POWER_RAGE:
-                    case POWER_FOCUS:
-                    case POWER_ENERGY:
-                        powerCost += int32(CalculatePct(caster->GetMaxPower(Powers(power->PowerType)), power->PowerCostPct));
-                        break;
-                    case POWER_RUNES:
-                    case POWER_RUNIC_POWER:
-                        TC_LOG_DEBUG("spells", "CalculateManaCost: Not implemented yet!");
-                        break;
-                    default:
-                        TC_LOG_ERROR("spells", "CalculateManaCost: Unknown power type '%d' in spell %d", power->PowerType, Id);
-                        continue;
-                }
-            }
-
-            if (power->PowerCostMaxPct)
-                healthCost += int32(CalculatePct(caster->GetMaxHealth(), power->PowerCostMaxPct));
-
-            int32 optionalCost = int32(power->OptionalCost);
-            optionalCost += caster->GetTotalAuraModifier(SPELL_AURA_MOD_ADDITIONAL_POWER_COST, [this, power](AuraEffect const* aurEff) -> bool
-            {
-                return aurEff->GetMiscValue() == power->PowerType
-                    && aurEff->IsAffectingSpell(this);
-            });
-
-            if (optionalCost)
-            {
-                int32 remainingPower = caster->GetPower(Powers(power->PowerType)) - powerCost;
-                powerCost += RoundToInterval<int32>(remainingPower, 0, optionalCost);
-            }
-
-            if (power->PowerType != POWER_HEALTH)
-            {
-                // Flat mod from caster auras by spell school and power type
-                Unit::AuraEffectList const& auras = caster->GetAuraEffectsByType(SPELL_AURA_MOD_POWER_COST_SCHOOL);
-                for (Unit::AuraEffectList::const_iterator i = auras.begin(); i != auras.end(); ++i)
-                {
-                    if (!((*i)->GetMiscValue() & schoolMask))
-                        continue;
-
-                    if (!((*i)->GetMiscValueB() & (1 << power->PowerType)))
-                        continue;
-
-                    powerCost += (*i)->GetAmount();
-                }
-            }
-
-            // Shiv - costs 20 + weaponSpeed*10 energy (apply only to non-triggered spell with energy cost)
-            if (HasAttribute(SPELL_ATTR4_SPELL_VS_EXTEND_COST))
-            {
-                uint32 speed = 0;
-                if (SpellShapeshiftFormEntry const* ss = sSpellShapeshiftFormStore.LookupEntry(caster->GetShapeshiftForm()))
-                    speed = ss->CombatRoundTime;
-                else
-                {
-                    WeaponAttackType slot = BASE_ATTACK;
-                    if (HasAttribute(SPELL_ATTR3_REQ_OFFHAND))
-                        slot = OFF_ATTACK;
-
-                    speed = caster->GetBaseAttackTime(slot);
-                }
-
-                powerCost += speed / 100;
-            }
-
-            // Apply cost mod by spell
-            if (Player* modOwner = caster->GetSpellModOwner())
-            {
-                if (power->OrderIndex == 0)
-                    modOwner->ApplySpellMod(Id, SPELLMOD_COST, powerCost);
-                else if (power->OrderIndex == 1)
-                    modOwner->ApplySpellMod(Id, SPELLMOD_SPELL_COST2, powerCost);
-            }
-
-            if (!caster->IsControlledByPlayer() && G3D::fuzzyEq(power->PowerCostPct, 0.0f) && SpellLevel)
-            {
-                if (HasAttribute(SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION))
-                {
-                    GtNpcManaCostScalerEntry const* spellScaler = sNpcManaCostScalerGameTable.GetRow(SpellLevel);
-                    GtNpcManaCostScalerEntry const* casterScaler = sNpcManaCostScalerGameTable.GetRow(caster->getLevel());
-                    if (spellScaler && casterScaler)
-                        powerCost *= casterScaler->Scaler / spellScaler->Scaler;
-                }
-            }
-
-            // PCT mod from user auras by spell school and power type
-            Unit::AuraEffectList const& aurasPct = caster->GetAuraEffectsByType(SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT);
-            for (Unit::AuraEffectList::const_iterator i = aurasPct.begin(); i != aurasPct.end(); ++i)
-            {
-                if (!((*i)->GetMiscValue() & schoolMask))
-                    continue;
-
-                if (!((*i)->GetMiscValueB() & (1 << power->PowerType)))
-                    continue;
-
-                powerCost += CalculatePct(powerCost, (*i)->GetAmount());
-            }
-
-            if (power->PowerType == POWER_HEALTH)
-            {
-                healthCost += powerCost;
-                continue;
-            }
-
-            bool found = false;
-            for (SpellPowerCost& cost : costs)
-            {
-                if (cost.Power == Powers(power->PowerType))
-                {
-                    cost.Amount += powerCost;
-                    found = true;
-                }
-            }
-
-            if (!found)
-            {
-                SpellPowerCost cost;
-                cost.Power = Powers(power->PowerType);
-                cost.Amount = powerCost;
-                costs.push_back(cost);
-            }
-        }
-
-        if (healthCost > 0)
-        {
-            SpellPowerCost cost;
             cost.Power = POWER_HEALTH;
-            cost.Amount = healthCost;
-            costs.push_back(cost);
+            cost.Amount = caster->GetHealth();
+
+            return cost;
         }
-    };
 
-    if (!_hasPowerDifficultyData) // optimization - use static data for 99.5% cases (4753 of 4772 in build 6.1.0.19702)
-        collector(PowerCosts);
-    else
-        collector(sDB2Manager.GetSpellPowers(Id, caster->GetMap()->GetDifficultyID()));
+        // Else drain all power
+        if (power->PowerType < MAX_POWERS)
+        {
+            cost.Power = Powers(power->PowerType);
+            cost.Amount = caster->GetPower(cost.Power);
 
-    return costs;
+            return cost;
+        }
+
+        TC_LOG_ERROR("spells", "SpellInfo::CalcPowerCost: Unknown power type '%d' in spell %d", power->PowerType, Id);
+        return cost;
+    }
+
+    // Base powerCost
+    int32 powerCost = power->ManaCost;
+
+    // PCT cost from total amount
+    if (power->PowerCostPct)
+    {
+        switch (power->PowerType)
+        {
+            // health as power used
+            case POWER_HEALTH:
+                powerCost += int32(CalculatePct(caster->GetMaxHealth(), power->PowerCostPct));
+                break;
+            case POWER_MANA:
+                powerCost += int32(CalculatePct(caster->GetCreateMana(), power->PowerCostPct));
+                break;
+            case POWER_RAGE:
+            case POWER_FOCUS:
+            case POWER_ENERGY:
+                powerCost += int32(CalculatePct(caster->GetMaxPower(Powers(power->PowerType)), power->PowerCostPct));
+                break;
+            default:
+                TC_LOG_ERROR("spells", "CalculateManaCost: Unknown power type '%d' in spell %d", power->PowerType, Id);
+                break;
+        }
+    }
+
+    if (power->PowerCostMaxPct)
+        healthCost += int32(CalculatePct(caster->GetMaxHealth(), power->PowerCostMaxPct));
+
+    int32 optionalCost = int32(power->OptionalCost);
+    optionalCost += caster->GetTotalAuraModifier(SPELL_AURA_MOD_ADDITIONAL_POWER_COST, [this, power](AuraEffect const* aurEff) -> bool
+    {
+        return aurEff->GetMiscValue() == power->PowerType
+            && aurEff->IsAffectingSpell(this);
+    });
+
+    if (optionalCost)
+    {
+        int32 remainingPower = caster->GetPower(Powers(power->PowerType)) - powerCost;
+        powerCost += RoundToInterval<int32>(remainingPower, 0, optionalCost);
+    }
+
+    if (power->PowerType != POWER_HEALTH)
+    {
+        // Flat mod from caster auras by spell school and power type
+        Unit::AuraEffectList const& auras = caster->GetAuraEffectsByType(SPELL_AURA_MOD_POWER_COST_SCHOOL);
+        for (auto& aura : auras)
+        {
+            if (aura->GetMiscValue() & schoolMask)
+                continue;
+
+            if (aura->GetMiscValueB() & (1 << power->PowerType))
+                continue;
+
+            powerCost += aura->GetAmount();
+        }
+    }
+
+    // Shiv - costs 20 + weaponSpeed*10 energy (apply only to non-triggered spell with energy cost)
+    if (HasAttribute(SPELL_ATTR4_SPELL_VS_EXTEND_COST))
+    {
+        uint32 speed = 0;
+        if (SpellShapeshiftFormEntry const* ss = sSpellShapeshiftFormStore.LookupEntry(caster->GetShapeshiftForm()))
+            speed = ss->CombatRoundTime;
+        else
+        {
+            WeaponAttackType slot = BASE_ATTACK;
+            if (HasAttribute(SPELL_ATTR3_REQ_OFFHAND))
+                slot = OFF_ATTACK;
+
+            speed = caster->GetBaseAttackTime(slot);
+        }
+
+        powerCost += speed / 100;
+    }
+
+    // Apply cost mod by spell
+    if (Player* modOwner = caster->GetSpellModOwner())
+    {
+        if (power->OrderIndex == 0)
+            modOwner->ApplySpellMod(Id, SPELLMOD_COST, powerCost);
+        else if (power->OrderIndex == 1)
+            modOwner->ApplySpellMod(Id, SPELLMOD_SPELL_COST2, powerCost);
+    }
+
+    if (!caster->IsControlledByPlayer() && G3D::fuzzyEq(power->PowerCostPct, 0.0f) && SpellLevel)
+    {
+        if (HasAttribute(SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION))
+        {
+            GtNpcManaCostScalerEntry const* spellScaler = sNpcManaCostScalerGameTable.GetRow(SpellLevel);
+            GtNpcManaCostScalerEntry const* casterScaler = sNpcManaCostScalerGameTable.GetRow(caster->getLevel());
+            if (spellScaler && casterScaler)
+                powerCost *= casterScaler->Scaler / spellScaler->Scaler;
+        }
+    }
+
+    // PCT mod from user auras by spell school and power type
+    Unit::AuraEffectList const& aurasPct = caster->GetAuraEffectsByType(SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT);
+    for (Unit::AuraEffectList::const_iterator i = aurasPct.begin(); i != aurasPct.end(); ++i)
+    {
+        if (!((*i)->GetMiscValue() & schoolMask))
+            continue;
+
+        if (!((*i)->GetMiscValueB() & (1 << power->PowerType)))
+            continue;
+
+        powerCost += CalculatePct(powerCost, (*i)->GetAmount());
+    }
+
+    cost.Power = Powers(power->PowerType);
+    cost.Amount = powerCost;
+    return cost;
 }
 
 inline float CalcPPMHasteMod(SpellProcsPerMinuteModEntry const* mod, Unit* caster)
@@ -4118,52 +4076,20 @@ bool SpellInfo::IsHighRankOf(SpellInfo const* spellInfo) const
 
 uint32 SpellInfo::GetSpellXSpellVisualId(Unit const* caster /*= nullptr*/) const
 {
-    if (caster)
-    {
-        Difficulty difficulty = caster->GetMap()->GetDifficultyID();
-        DifficultyEntry const* difficultyEntry = sDifficultyStore.LookupEntry(difficulty);
-        while (difficultyEntry)
-        {
-            auto itr = _visuals.find(difficulty);
-            if (itr != _visuals.end())
-            {
-                for (SpellXSpellVisualEntry const* visual : itr->second)
-                {
-                    PlayerConditionEntry const* playerCondition = sPlayerConditionStore.LookupEntry(visual->CasterPlayerConditionID);
-                    if (!playerCondition || (caster->GetTypeId() == TYPEID_PLAYER && sConditionMgr->IsPlayerMeetingCondition(caster->ToPlayer(), playerCondition)))
-                        return visual->ID;
-                }
-            }
+    if (_visual.ID == 0)
+        return 0;
 
-            difficultyEntry = sDifficultyStore.LookupEntry(difficultyEntry->FallbackDifficultyID);
-        }
-    }
-
-    auto itr = _visuals.find(DIFFICULTY_NONE);
-    if (itr != _visuals.end())
-    {
-        for (SpellXSpellVisualEntry const* visual : itr->second)
-        {
-            PlayerConditionEntry const* playerCondition = sPlayerConditionStore.LookupEntry(visual->CasterPlayerConditionID);
-            if (!playerCondition || (caster && caster->GetTypeId() == TYPEID_PLAYER && sConditionMgr->IsPlayerMeetingCondition(caster->ToPlayer(), playerCondition)))
-                return visual->ID;
-        }
-    }
+    PlayerConditionEntry const* playerCondition = sPlayerConditionStore.LookupEntry(_visual.CasterPlayerConditionID);
+    if (!playerCondition || (caster && caster->GetTypeId() == TYPEID_PLAYER && sConditionMgr->IsPlayerMeetingCondition(caster->ToPlayer(), playerCondition)))
+        return _visual.SpellVisualID;
 
     return 0;
 }
 
 uint32 SpellInfo::GetSpellVisual(Unit const* caster /*= nullptr*/) const
 {
-    if (SpellXSpellVisualEntry const* visual = sSpellXSpellVisualStore.LookupEntry(GetSpellXSpellVisualId(caster)))
-    {
-        //if (visual->LowViolenceSpellVisualID && forPlayer->GetViolenceLevel() operator 2)
-        //    return visual->LowViolenceSpellVisualID;
-
-        return visual->SpellVisualID;
-    }
-
-    return 0;
+    // @TODO: Too lazy atm to change all the code to GetSpellXSpellVisualId
+    return GetSpellXSpellVisualId(caster);
 }
 
 void SpellInfo::_InitializeExplicitTargetMask()

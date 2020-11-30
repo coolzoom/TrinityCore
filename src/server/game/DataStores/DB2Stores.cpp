@@ -225,7 +225,6 @@ DB2Storage<SpellLearnSpellEntry>                sSpellLearnSpellStore("SpellLear
 DB2Storage<SpellLevelsEntry>                    sSpellLevelsStore("SpellLevels.db2", SpellLevelsLoadInfo::Instance());
 DB2Storage<SpellMiscEntry>                      sSpellMiscStore("SpellMisc.db2", SpellMiscLoadInfo::Instance());
 DB2Storage<SpellNameEntry>                      sSpellNameStore("SpellName.db2", SpellNameLoadInfo::Instance());
-DB2Storage<SpellPowerEntry>                     sSpellPowerStore("SpellPower.db2", SpellPowerLoadInfo::Instance());
 DB2Storage<SpellPowerDifficultyEntry>           sSpellPowerDifficultyStore("SpellPowerDifficulty.db2", SpellPowerDifficultyLoadInfo::Instance());
 DB2Storage<SpellProcsPerMinuteEntry>            sSpellProcsPerMinuteStore("SpellProcsPerMinute.db2", SpellProcsPerMinuteLoadInfo::Instance());
 DB2Storage<SpellProcsPerMinuteModEntry>         sSpellProcsPerMinuteModStore("SpellProcsPerMinuteMod.db2", SpellProcsPerMinuteModLoadInfo::Instance());
@@ -237,7 +236,6 @@ DB2Storage<SpellShapeshiftEntry>                sSpellShapeshiftStore("SpellShap
 DB2Storage<SpellShapeshiftFormEntry>            sSpellShapeshiftFormStore("SpellShapeshiftForm.db2", SpellShapeshiftFormLoadInfo::Instance());
 DB2Storage<SpellTargetRestrictionsEntry>        sSpellTargetRestrictionsStore("SpellTargetRestrictions.db2", SpellTargetRestrictionsLoadInfo::Instance());
 DB2Storage<SpellTotemsEntry>                    sSpellTotemsStore("SpellTotems.db2", SpellTotemsLoadInfo::Instance());
-DB2Storage<SpellXSpellVisualEntry>              sSpellXSpellVisualStore("SpellXSpellVisual.db2", SpellXSpellVisualLoadInfo::Instance());
 DB2Storage<SummonPropertiesEntry>               sSummonPropertiesStore("SummonProperties.db2", SummonPropertiesLoadInfo::Instance());
 DB2Storage<TactKeyEntry>                        sTactKeyStore("TactKey.db2", TactKeyLoadInfo::Instance());
 DB2Storage<TalentEntry>                         sTalentStore("Talent.db2", TalentLoadInfo::Instance());
@@ -314,8 +312,6 @@ typedef std::unordered_map<uint32, std::pair<std::vector<QuestPackageItemEntry c
 typedef std::unordered_map<uint32, uint32> RulesetItemUpgradeContainer;
 typedef std::unordered_multimap<uint32, SkillRaceClassInfoEntry const*> SkillRaceClassInfoContainer;
 typedef std::unordered_map<uint32, std::vector<SpecializationSpellsEntry const*>> SpecializationSpellsContainer;
-typedef std::unordered_map<uint32, std::vector<SpellPowerEntry const*>> SpellPowerContainer;
-typedef std::unordered_map<uint32, std::unordered_map<uint32, std::vector<SpellPowerEntry const*>>> SpellPowerDifficultyContainer;
 typedef std::unordered_map<uint32, std::vector<SpellProcsPerMinuteModEntry const*>> SpellProcsPerMinuteModContainer;
 typedef std::vector<TalentEntry const*> TalentsByPosition[MAX_CLASSES][MAX_TALENT_TIERS][MAX_TALENT_COLUMNS];
 typedef std::unordered_set<uint32> ToyItemIdsContainer;
@@ -383,8 +379,6 @@ namespace
     SkillRaceClassInfoContainer _skillRaceClassInfoBySkill;
     SpecializationSpellsContainer _specializationSpellsBySpec;
     std::unordered_set<uint8> _spellFamilyNames;
-    SpellPowerContainer _spellPowers;
-    SpellPowerDifficultyContainer _spellPowerDifficulties;
     SpellProcsPerMinuteModContainer _spellProcsPerMinuteMods;
     TalentsByPosition _talentsByPosition;
     ToyItemIdsContainer _toys;
@@ -584,7 +578,6 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sSpellLevelsStore);
     LOAD_DB2(sSpellMiscStore);
     LOAD_DB2(sSpellNameStore);
-    LOAD_DB2(sSpellPowerStore);
     LOAD_DB2(sSpellRadiusStore);
     LOAD_DB2(sSpellRangeStore);
     LOAD_DB2(sSpellReagentsStore);
@@ -592,7 +585,6 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sSpellShapeshiftFormStore);
     LOAD_DB2(sSpellTargetRestrictionsStore);
     LOAD_DB2(sSpellTotemsStore);
-    LOAD_DB2(sSpellXSpellVisualStore);
     LOAD_DB2(sSummonPropertiesStore);
     LOAD_DB2(sTactKeyStore);
     LOAD_DB2(sTalentStore);
@@ -612,7 +604,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     if (bad_db2_files.size() == _stores.size())
     {
         TC_LOG_ERROR("misc", "\nIncorrect DataDir value in worldserver.conf or ALL required *.db2 files (" SZFMTD ") not found by path: %sdbc/%s/", _stores.size(), dataPath.c_str(), localeNames[defaultLocale]);
-        // exit(1);
+        exit(1);
     }
     else if (!bad_db2_files.empty())
     {
@@ -621,7 +613,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
             str += bad_db2_file + "\n";
 
         TC_LOG_ERROR("misc", "\nSome required *.db2 files (" SZFMTD " from " SZFMTD ") not found or not compatible:\n%s", bad_db2_files.size(), _stores.size(), str.c_str());
-        // exit(1);
+        exit(1);
     }
 
     for (AreaGroupMemberEntry const* areaGroupMember : sAreaGroupMemberStore)
@@ -927,25 +919,25 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     for (SpellClassOptionsEntry const* classOption : sSpellClassOptionsStore)
         _spellFamilyNames.insert(classOption->SpellClassSet);
 
-    for (SpellPowerEntry const* power : sSpellPowerStore)
-    {
-        if (SpellPowerDifficultyEntry const* powerDifficulty = sSpellPowerDifficultyStore.LookupEntry(power->ID))
-        {
-            std::vector<SpellPowerEntry const*>& powers = _spellPowerDifficulties[power->SpellID][powerDifficulty->DifficultyID];
-            if (powers.size() <= powerDifficulty->OrderIndex)
-                powers.resize(powerDifficulty->OrderIndex + 1);
-
-            powers[powerDifficulty->OrderIndex] = power;
-        }
-        else
-        {
-            std::vector<SpellPowerEntry const*>& powers = _spellPowers[power->SpellID];
-            if (powers.size() <= power->OrderIndex)
-                powers.resize(power->OrderIndex + 1);
-
-            powers[power->OrderIndex] = power;
-        }
-    }
+    // for (SpellPowerEntry const* power : sSpellPowerStore)
+    // {
+    //     if (SpellPowerDifficultyEntry const* powerDifficulty = sSpellPowerDifficultyStore.LookupEntry(power->ID))
+    //     {
+    //         std::vector<SpellPowerEntry const*>& powers = _spellPowerDifficulties[power->SpellID][powerDifficulty->DifficultyID];
+    //         if (powers.size() <= powerDifficulty->OrderIndex)
+    //             powers.resize(powerDifficulty->OrderIndex + 1);
+    // 
+    //         powers[powerDifficulty->OrderIndex] = power;
+    //     }
+    //     else
+    //     {
+    //         std::vector<SpellPowerEntry const*>& powers = _spellPowers[power->SpellID];
+    //         if (powers.size() <= power->OrderIndex)
+    //             powers.resize(power->OrderIndex + 1);
+    // 
+    //         powers[power->OrderIndex] = power;
+    //     }
+    // }
 
     for (SpellProcsPerMinuteModEntry const* ppmMod : sSpellProcsPerMinuteModStore)
         _spellProcsPerMinuteMods[ppmMod->SpellProcsPerMinuteID].push_back(ppmMod);
@@ -2214,48 +2206,6 @@ std::vector<SpecializationSpellsEntry const*> const* DB2Manager::GetSpecializati
 bool DB2Manager::IsValidSpellFamiliyName(SpellFamilyNames family)
 {
     return _spellFamilyNames.count(family) > 0;
-}
-
-std::vector<SpellPowerEntry const*> DB2Manager::GetSpellPowers(uint32 spellId, Difficulty difficulty /*= DIFFICULTY_NONE*/, bool* hasDifficultyPowers /*= nullptr*/) const
-{
-    std::vector<SpellPowerEntry const*> powers;
-
-    auto difficultyItr = _spellPowerDifficulties.find(spellId);
-    if (difficultyItr != _spellPowerDifficulties.end())
-    {
-        if (hasDifficultyPowers)
-            *hasDifficultyPowers = true;
-
-        DifficultyEntry const* difficultyEntry = sDifficultyStore.LookupEntry(difficulty);
-        while (difficultyEntry)
-        {
-            auto powerDifficultyItr = difficultyItr->second.find(difficultyEntry->ID);
-            if (powerDifficultyItr != difficultyItr->second.end())
-            {
-                if (powerDifficultyItr->second.size() > powers.size())
-                    powers.resize(powerDifficultyItr->second.size());
-
-                for (SpellPowerEntry const* difficultyPower : powerDifficultyItr->second)
-                    if (!powers[difficultyPower->OrderIndex])
-                        powers[difficultyPower->OrderIndex] = difficultyPower;
-            }
-
-            difficultyEntry = sDifficultyStore.LookupEntry(difficultyEntry->FallbackDifficultyID);
-        }
-    }
-
-    auto itr = _spellPowers.find(spellId);
-    if (itr != _spellPowers.end())
-    {
-        if (itr->second.size() > powers.size())
-            powers.resize(itr->second.size());
-
-        for (SpellPowerEntry const* power : itr->second)
-            if (!powers[power->OrderIndex])
-                powers[power->OrderIndex] = power;
-    }
-
-    return powers;
 }
 
 std::vector<SpellProcsPerMinuteModEntry const*> DB2Manager::GetSpellProcsPerMinuteMods(uint32 spellprocsPerMinuteId) const

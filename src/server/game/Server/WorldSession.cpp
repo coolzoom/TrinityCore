@@ -1198,7 +1198,7 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
         case CMSG_MOVE_SET_FACING:                      //   0               1.5
         case CMSG_REQUEST_PARTY_MEMBER_STATS:           //   0               1.5
         case CMSG_QUEST_GIVER_COMPLETE_QUEST:           //   0               1.5
-        case CMSG_SET_ACTION_BUTTON:                    //   0               1.5
+        //case CMSG_SET_ACTION_BUTTON:                    //   0               1.5
         case CMSG_RESET_INSTANCES:                      //   0               1.5
         case CMSG_HEARTH_AND_RESURRECT:                 //   0               1.5
         case CMSG_TOGGLE_PVP:                           //   0               1.5
@@ -1214,9 +1214,9 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
         case CMSG_PARTY_INVITE_RESPONSE:                //   0               1.5
         case CMSG_PARTY_UNINVITE:                       //   0               1.5
         case CMSG_LEAVE_GROUP:                          //   0               1.5
-        case CMSG_BATTLEMASTER_JOIN_ARENA:              //   0               1.5
+        //case CMSG_BATTLEMASTER_JOIN_ARENA:              //   0               1.5
         case CMSG_BATTLEFIELD_LEAVE:                    //   0               1.5
-        case CMSG_GUILD_BANK_LOG_QUERY:                 //   0               2
+        //case CMSG_GUILD_BANK_LOG_QUERY:                 //   0               2
         case CMSG_LOGOUT_CANCEL:                        //   0               2
         case CMSG_ALTER_APPEARANCE:                     //   0               2
         case CMSG_QUEST_CONFIRM_ACCEPT:                 //   0               2
@@ -1242,7 +1242,7 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
         case CMSG_AREA_SPIRIT_HEALER_QUERY:             // not profiled
         case CMSG_STAND_STATE_CHANGE:                   // not profiled
         case CMSG_RANDOM_ROLL:                          // not profiled
-        case CMSG_TIME_SYNC_RESPONSE:                   // not profiled
+        //case CMSG_TIME_SYNC_RESPONSE:                   // not profiled
         case CMSG_MOVE_FORCE_RUN_SPEED_CHANGE_ACK:      // not profiled
         {
             // "0" is a magic number meaning there's no limit for the opcode.
@@ -1269,7 +1269,7 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
         case CMSG_SET_CONTACT_NOTES:                    //   1               2.5       1 async db query
         case CMSG_CALENDAR_GET:                         //   0               1.5       medium upload bandwidth usage
         case CMSG_GUILD_BANK_QUERY_TAB:                 //   0               3.5       medium upload bandwidth usage
-        case CMSG_QUERY_INSPECT_ACHIEVEMENTS:           //   0              13         high upload bandwidth usage
+        //case CMSG_QUERY_INSPECT_ACHIEVEMENTS:           //   0              13         high upload bandwidth usage
         case CMSG_GAME_OBJ_REPORT_USE:                  // not profiled
         case CMSG_GAME_OBJ_USE:                         // not profiled
         case CMSG_DECLINE_PETITION:                     // not profiled
@@ -1278,11 +1278,11 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
             break;
         }
 
-        case CMSG_QUEST_POI_QUERY:                      //   0              25         very high upload bandwidth usage
-        {
-            maxPacketCounterAllowed = MAX_QUEST_LOG_SIZE;
-            break;
-        }
+        //case CMSG_QUEST_POI_QUERY:                      //   0              25         very high upload bandwidth usage
+        //{
+        //    maxPacketCounterAllowed = MAX_QUEST_LOG_SIZE;
+        //    break;
+        //}
 
         case CMSG_SPELL_CLICK:                          // not profiled
         case CMSG_MOVE_DISMISS_VEHICLE:                 // not profiled
@@ -1312,7 +1312,7 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
         case CMSG_REQUEST_VEHICLE_NEXT_SEAT:            // not profiled
         case CMSG_REQUEST_VEHICLE_SWITCH_SEAT:          // not profiled
         case CMSG_REQUEST_VEHICLE_EXIT:                 // not profiled
-        case CMSG_EJECT_PASSENGER:                      // not profiled
+        //case CMSG_EJECT_PASSENGER:                      // not profiled
         case CMSG_ITEM_PURCHASE_REFUND:                 // not profiled
         case CMSG_SOCKET_GEMS:                          // not profiled
         case CMSG_WRAP_ITEM:                            // not profiled
@@ -1348,16 +1348,16 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
         case CMSG_GUILD_ADD_RANK:                       // not profiled
         case CMSG_GUILD_DELETE_RANK:                    // not profiled
         case CMSG_GUILD_UPDATE_INFO_TEXT:               // not profiled
-        case CMSG_GUILD_BANK_DEPOSIT_MONEY:             // not profiled
-        case CMSG_GUILD_BANK_WITHDRAW_MONEY:            // not profiled
-        case CMSG_GUILD_BANK_BUY_TAB:                   // not profiled
-        case CMSG_GUILD_BANK_UPDATE_TAB:                // not profiled
+        //case CMSG_GUILD_BANK_DEPOSIT_MONEY:             // not profiled
+        //case CMSG_GUILD_BANK_WITHDRAW_MONEY:            // not profiled
+        //case CMSG_GUILD_BANK_BUY_TAB:                   // not profiled
+        //case CMSG_GUILD_BANK_UPDATE_TAB:                // not profiled
         case CMSG_GUILD_BANK_SET_TAB_TEXT:              // not profiled
         case CMSG_SAVE_GUILD_EMBLEM:                    // not profiled
         case CMSG_PETITION_RENAME_GUILD:                // not profiled
         case CMSG_CONFIRM_RESPEC_WIPE:                  // not profiled
-        case CMSG_SET_DUNGEON_DIFFICULTY:               // not profiled
-        case CMSG_SET_RAID_DIFFICULTY:                  // not profiled
+        //case CMSG_SET_DUNGEON_DIFFICULTY:               // not profiled
+        //case CMSG_SET_RAID_DIFFICULTY:                  // not profiled
         case CMSG_SET_PARTY_ASSIGNMENT:                 // not profiled
         case CMSG_DO_READY_CHECK:                       // not profiled
         {

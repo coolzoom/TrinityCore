@@ -135,7 +135,7 @@ ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Spells::AuraDataInfo cons
 
 ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Spells::AuraInfo const& aura)
 {
-    data << aura.Slot;
+    data << uint8(aura.Slot);
     data.WriteBit(aura.AuraData.is_initialized());
     data.FlushBits();
 
@@ -148,7 +148,7 @@ ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Spells::AuraInfo const& a
 WorldPacket const* WorldPackets::Spells::AuraUpdate::Write()
 {
     _worldPacket.WriteBit(UpdateAll);
-    _worldPacket.WriteBits(Auras.size(), 9);
+    _worldPacket.WriteBits(Auras.size(), 8);
     for (AuraInfo const& aura : Auras)
         _worldPacket << aura;
 
@@ -371,7 +371,6 @@ ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Spells::SpellCastData con
     data << uint32(spellCastData.CastFlagsEx);
     data << uint32(spellCastData.CastTime);
     data << spellCastData.MissileTrajectory;
-    data << int32(spellCastData.Ammo.DisplayID);
     data << uint8(spellCastData.DestLocSpellCastIndex);
     data << spellCastData.Immunities;
     data << spellCastData.Predict;
@@ -381,6 +380,8 @@ ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Spells::SpellCastData con
     data.WriteBits(spellCastData.RemainingPower.size(), 9);
     data.WriteBit(spellCastData.RemainingRunes.is_initialized());
     data.WriteBits(spellCastData.TargetPoints.size(), 16);
+    data.WriteBit(spellCastData.AmmoDisplayID.is_initialized());
+    data.WriteBit(spellCastData.AmmoInventoryType.is_initialized());
     data.FlushBits();
 
     for (WorldPackets::Spells::SpellMissStatus const& status : spellCastData.MissStatus)
@@ -403,6 +404,12 @@ ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Spells::SpellCastData con
     for (WorldPackets::Spells::TargetLocation const& targetLoc : spellCastData.TargetPoints)
         data << targetLoc;
 
+    if (spellCastData.AmmoDisplayID)
+        data << int32(*spellCastData.AmmoDisplayID);
+
+    if (spellCastData.AmmoInventoryType)
+        data << int32(*spellCastData.AmmoInventoryType);
+
     return data;
 }
 
@@ -415,12 +422,14 @@ WorldPacket const* WorldPackets::Spells::SpellStart::Write()
 
 WorldPacket const* WorldPackets::Spells::SpellGo::Write()
 {
-    *this << Cast;
+    _worldPacket << Cast;
 
-    WriteLogDataBit();
-    FlushBits();
+    _worldPacket.FlushBits();
+    _worldPacket.WriteBit(false); //< Log Data
 
-    WriteLogData();
+    // WriteLogDataBit();
+    // FlushBits();
+    // WriteLogData();
 
     return &_worldPacket;
 }

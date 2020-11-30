@@ -285,15 +285,6 @@ namespace WorldPackets
         class GameObjUse;
     }
 
-    namespace Garrison
-    {
-        class GetGarrisonInfo;
-        class GarrisonPurchaseBuilding;
-        class GarrisonCancelConstruction;
-        class GarrisonRequestBlueprintAndSpecializationData;
-        class GarrisonGetBuildingLandmarks;
-    }
-
     namespace Guild
     {
         class QueryGuildInfo;
@@ -1667,13 +1658,6 @@ class TC_GAME_API WorldSession
         // Compact Unit Frames (4.x)
         void HandleSaveCUFProfiles(WorldPackets::Misc::SaveCUFProfiles& packet);
         void SendLoadCUFProfiles();
-
-        // Garrison
-        void HandleGetGarrisonInfo(WorldPackets::Garrison::GetGarrisonInfo& getGarrisonInfo);
-        void HandleGarrisonPurchaseBuilding(WorldPackets::Garrison::GarrisonPurchaseBuilding& garrisonPurchaseBuilding);
-        void HandleGarrisonCancelConstruction(WorldPackets::Garrison::GarrisonCancelConstruction& garrisonCancelConstruction);
-        void HandleGarrisonRequestBlueprintAndSpecializationData(WorldPackets::Garrison::GarrisonRequestBlueprintAndSpecializationData& garrisonRequestBlueprintAndSpecializationData);
-        void HandleGarrisonGetBuildingLandmarks(WorldPackets::Garrison::GarrisonGetBuildingLandmarks& garrisonGetBuildingLandmarks);
 
         // Battle Pets
         void HandleBattlePetRequestJournal(WorldPackets::BattlePet::BattlePetRequestJournal& battlePetRequestJournal);

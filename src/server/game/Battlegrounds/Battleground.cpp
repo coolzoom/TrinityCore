@@ -490,9 +490,6 @@ inline void Battleground::_ProcessJoin(uint32 diff)
                     sBattlegroundMgr->BuildBattlegroundStatusActive(&battlefieldStatus, this, player, queueSlot, player->GetBattlegroundQueueJoinTime(bgQueueTypeId), GetArenaType());
                     player->SendDirectMessage(battlefieldStatus.Write());
 
-                    // Correctly display EnemyUnitFrame
-                    player->SetByteValue(PLAYER_BYTES_4, PLAYER_BYTES_4_OFFSET_ARENA_FACTION, player->GetBGTeam());
-
                     player->RemoveAurasDueToSpell(SPELL_ARENA_PREPARATION);
                     player->ResetAllPowers();
                     if (!player->IsGameMaster())

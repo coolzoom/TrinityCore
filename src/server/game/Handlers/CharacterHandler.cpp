@@ -328,14 +328,6 @@ void WorldSession::HandleCharEnum(PreparedQueryResult result)
             if (!sWorld->HasCharacterInfo(charInfo.Guid)) // This can happen if characters are inserted into the database manually. Core hasn't loaded name data yet.
                 sWorld->AddCharacterInfo(charInfo.Guid, GetAccountId(), charInfo.Name, charInfo.Sex, charInfo.Race, charInfo.Class, charInfo.Level, false);
 
-            if (charInfo.Class == CLASS_DEMON_HUNTER)
-                demonHunterCount++;
-
-            if (demonHunterCount >= sWorld->getIntConfig(CONFIG_DEMON_HUNTERS_PER_REALM) && !canAlwaysCreateDemonHunter)
-                charEnum.HasDemonHunterOnRealm = true;
-            else
-                charEnum.HasDemonHunterOnRealm = false;
-
             charEnum.MaxCharacterLevel = std::max<int32>(charEnum.MaxCharacterLevel, charInfo.Level);
         }
         while (result->NextRow());

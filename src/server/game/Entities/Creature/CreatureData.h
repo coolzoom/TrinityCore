@@ -337,6 +337,7 @@ struct TC_GAME_API CreatureTemplate
     int32   HealthScalingExpansion;
     uint32  RequiredExpansion;
     uint32  VignetteID;                                     /// @todo Read Vignette.db2
+    uint32  PetSpellDataID;
     uint32  faction;
     uint64  npcflag;
     float   speed_walk;
@@ -378,6 +379,7 @@ struct TC_GAME_API CreatureTemplate
     float   ModDamage;
     float   ModExperience;
     bool    RacialLeader;
+    bool    Civilian;
     uint32  movementId;
     bool    RegenHealth;
     uint32  MechanicImmuneMask;
@@ -451,6 +453,91 @@ struct TC_GAME_API CreatureTemplate
 };
 
 #pragma pack(push, 1)
+
+namespace CreatureTemplateIndex
+{
+    enum
+    {
+        Entry,
+        KillCredit1,
+        KillCredit2,
+        ModelId1,
+        ModelId2,
+        ModelId3,
+        ModelId4,
+        Name,
+        FemaleName,
+        SubName,
+        TitleAlt,
+        IconName,
+        GossipMenuId,
+        MinLevel,
+        MaxLevel,
+        HealthScalingExpansion,
+        RequiredExpansion,
+        VignetteID,
+        Faction,
+        NpcFlag,
+        SpeedWalk,
+        SpeedRun,
+        Scale,
+        Rank,
+        PetSpellDataID,
+        DmgSchool,
+        BaseAttackTime,
+        RangeAttackTime,
+        BaseVariance,
+        RangeVariance,
+        UnitClass,
+        UnitFlags,
+        UnitFlags2,
+        UnitFlags3,
+        DynamicFlags,
+        Family,
+        TrainerClass,
+        Type,
+        TypeFlags,
+        TypeFlags2,
+        LootId,
+        PickPocketLoot,
+        SkinLoot,
+        Resistance1,
+        Resistance2,
+        Resistance3,
+        Resistance4,
+        Resistance5,
+        Resistance6,
+        Spell1,
+        Spell2,
+        Spell3,
+        Spell4,
+        Spell5,
+        Spell6,
+        Spell7,
+        Spell8,
+        VehicleId,
+        MinGold,
+        MaxGold,
+        AIName,
+        MovementType,
+        InhabitType,
+        HoverHeight,
+        HealthModifier,
+        HealthModifierExtra,
+        ManaModifier,
+        ManaModifierExtra,
+        ArmorModifier,
+        DamageModifier,
+        ExperienceModifier,
+        RacialLeader,
+        Civilian,
+        MovementId,
+        RegenHealth,
+        MechanicImmuneMask,
+        FlagsExtra,
+        ScriptName,
+    };
+}
 
 // Defines base stats for creatures (used to calculate HP/mana/armor/attackpower/rangedattackpower/all damage).
 struct TC_GAME_API CreatureBaseStats

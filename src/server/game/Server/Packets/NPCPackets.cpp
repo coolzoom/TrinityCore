@@ -76,8 +76,6 @@ ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::NPC::VendorItem const &it
     data << int32(item.ExtendedCostID);
     data << int32(item.PlayerConditionFailed);
     data << item.Item;
-    data.WriteBit(item.DoNotFilterOnVendor);
-    data.FlushBits();
 
     return data;
 }
