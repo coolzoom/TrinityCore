@@ -2182,7 +2182,7 @@ void SpellMgr::LoadSpellInfoStore()
     std::unordered_map<uint32, SpellInfoLoadHelper> loadData;
 
     std::unordered_map<int32, SpellEffectEntryMap> effectsBySpell;
-    std::unordered_map<uint32, SpellVisualMap> visualsBySpell;
+    std::map<uint32, SpellXSpellVisualEntry> visualsBySpell;
 
     for (SpellEffectEntry const* effect : sSpellEffectStore)
     {
@@ -2252,15 +2252,16 @@ void SpellMgr::LoadSpellInfoStore()
     for (SpellTotemsEntry const* totems : sSpellTotemsStore)
         loadData[totems->SpellID].Totems = totems;
 
-    for (SpellXSpellVisualEntry const* visual : sSpellXSpellVisualStore)
-        visualsBySpell[visual->SpellID][visual->DifficultyID].push_back(visual);
+    auto spellVisualStorage = sObjectMgr->GetSpellVisuals();
+    for (auto& spellVisual : spellVisualStorage)
+        visualsBySpell.emplace(spellVisual.second.SpellID, spellVisual.second);
 
     for (uint32 i = 0; i < sSpellNameStore.GetNumRows(); ++i)
     {
         if (SpellNameEntry const* spellNameEntry = sSpellNameStore.LookupEntry(i))
         {
             loadData[i].Entry = spellNameEntry;
-            mSpellInfoMap[i] = new SpellInfo(loadData[i], effectsBySpell[i], std::move(visualsBySpell[i]));
+            mSpellInfoMap[i] = new SpellInfo(loadData[i], effectsBySpell[i], visualsBySpell[spellNameEntry->ID]);
         }
     }
 

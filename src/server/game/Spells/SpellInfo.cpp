@@ -1033,7 +1033,7 @@ SpellEffectInfo::StaticData SpellEffectInfo::_data[TOTAL_SPELL_EFFECTS] =
     {EFFECT_IMPLICIT_TARGET_EXPLICIT, TARGET_OBJECT_TYPE_ITEM}, // 261 SPELL_EFFECT_SCRAP_ITEM
 };
 
-SpellInfo::SpellInfo(SpellInfoLoadHelper const& data, SpellEffectEntryMap const& effectsMap, SpellVisualMap&& visuals)
+SpellInfo::SpellInfo(SpellInfoLoadHelper const& data, SpellEffectEntryMap const& effectsMap, SpellXSpellVisualEntry visual)
     : _hasPowerDifficultyData(false)
 {
     Id = data.Entry->ID;
@@ -1076,10 +1076,7 @@ SpellInfo::SpellInfo(SpellInfoLoadHelper const& data, SpellEffectEntryMap const&
     IconFileDataId = _misc ? _misc->SpellIconFileDataID : 0;
     ActiveIconFileDataId = _misc ? _misc->ActiveIconFileDataID : 0;
 
-    _visuals = std::move(visuals);
-    // sort all visuals so that the ones without a condition requirement are last on the list
-    for (auto& visualPair : _visuals)
-        std::sort(visualPair.second.begin(), visualPair.second.end(), [](SpellXSpellVisualEntry const* first, SpellXSpellVisualEntry const* second) { return first->CasterPlayerConditionID > second->CasterPlayerConditionID; });
+    _visual = visual;
 
     // SpellScalingEntry
     SpellScalingEntry const* _scaling = data.Scaling;
@@ -4079,52 +4076,20 @@ bool SpellInfo::IsHighRankOf(SpellInfo const* spellInfo) const
 
 uint32 SpellInfo::GetSpellXSpellVisualId(Unit const* caster /*= nullptr*/) const
 {
-    if (caster)
-    {
-        Difficulty difficulty = caster->GetMap()->GetDifficultyID();
-        DifficultyEntry const* difficultyEntry = sDifficultyStore.LookupEntry(difficulty);
-        while (difficultyEntry)
-        {
-            auto itr = _visuals.find(difficulty);
-            if (itr != _visuals.end())
-            {
-                for (SpellXSpellVisualEntry const* visual : itr->second)
-                {
-                    PlayerConditionEntry const* playerCondition = sPlayerConditionStore.LookupEntry(visual->CasterPlayerConditionID);
-                    if (!playerCondition || (caster->GetTypeId() == TYPEID_PLAYER && sConditionMgr->IsPlayerMeetingCondition(caster->ToPlayer(), playerCondition)))
-                        return visual->ID;
-                }
-            }
+    if (_visual.ID == 0)
+        return 0;
 
-            difficultyEntry = sDifficultyStore.LookupEntry(difficultyEntry->FallbackDifficultyID);
-        }
-    }
-
-    auto itr = _visuals.find(DIFFICULTY_NONE);
-    if (itr != _visuals.end())
-    {
-        for (SpellXSpellVisualEntry const* visual : itr->second)
-        {
-            PlayerConditionEntry const* playerCondition = sPlayerConditionStore.LookupEntry(visual->CasterPlayerConditionID);
-            if (!playerCondition || (caster && caster->GetTypeId() == TYPEID_PLAYER && sConditionMgr->IsPlayerMeetingCondition(caster->ToPlayer(), playerCondition)))
-                return visual->ID;
-        }
-    }
+    PlayerConditionEntry const* playerCondition = sPlayerConditionStore.LookupEntry(_visual.CasterPlayerConditionID);
+    if (!playerCondition || (caster && caster->GetTypeId() == TYPEID_PLAYER && sConditionMgr->IsPlayerMeetingCondition(caster->ToPlayer(), playerCondition)))
+        return _visual.SpellVisualID;
 
     return 0;
 }
 
 uint32 SpellInfo::GetSpellVisual(Unit const* caster /*= nullptr*/) const
 {
-    if (SpellXSpellVisualEntry const* visual = sSpellXSpellVisualStore.LookupEntry(GetSpellXSpellVisualId(caster)))
-    {
-        //if (visual->LowViolenceSpellVisualID && forPlayer->GetViolenceLevel() operator 2)
-        //    return visual->LowViolenceSpellVisualID;
-
-        return visual->SpellVisualID;
-    }
-
-    return 0;
+    // @TODO: Too lazy atm to change all the code to GetSpellXSpellVisualId
+    return GetSpellXSpellVisualId(caster);
 }
 
 void SpellInfo::_InitializeExplicitTargetMask()

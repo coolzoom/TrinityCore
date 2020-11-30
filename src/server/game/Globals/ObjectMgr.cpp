@@ -10447,40 +10447,25 @@ void ObjectMgr::LoadSpellPowers()
 
     do
     {
-        Field* fields               = result->Fetch();
-
-        uint32 id                   = fields[0].GetUInt32();
-        int32 spellId               = fields[1].GetInt32();
-        uint8 orderIndex            = fields[2].GetUInt8();
-        int32 manaCost              = fields[3].GetInt32();
-        int32 manaCostPerLevel      = fields[4].GetInt32();
-        int32 manaPerSecond         = fields[5].GetInt32();
-        uint32 powerDisplayId       = fields[6].GetUInt32();
-        int32 altPowerBarId         = fields[7].GetInt32();
-        float powerCostPct          = fields[8].GetFloat();
-        float powerCostMaxPct       = fields[9].GetFloat();
-        float powerPctPerSecond     = fields[10].GetFloat();
-        int8 powerType              = fields[11].GetInt8();
-        int32 requiredAuraSpellID   = fields[12].GetInt32();
-        uint32 optionalCost         = fields[13].GetUInt32();
+        Field* fields = result->Fetch();
 
         SpellPowerEntry entry {};
-        entry.ID                = id;
-        entry.SpellID           = spellId;
-        entry.OrderIndex        = orderIndex;
-        entry.ManaCost          = manaCost;
-        entry.ManaCostPerLevel  = manaCostPerLevel;
-        entry.ManaPerSecond     = manaPerSecond;
-        entry.PowerDisplayID    = powerDisplayId;
-        entry.AltPowerBarID     = altPowerBarId;
-        entry.PowerCostPct      = powerCostPct;
-        entry.PowerCostMaxPct   = powerCostMaxPct;
-        entry.PowerPctPerSecond = powerPctPerSecond;
-        entry.PowerType         = powerType;
-        entry.RequiredAuraSpellID = requiredAuraSpellID;
-        entry.OptionalCost      = optionalCost;
+        entry.ID                    = fields[0].GetUInt32();
+        entry.SpellID               = fields[1].GetInt32();
+        entry.OrderIndex            = fields[2].GetUInt8();
+        entry.ManaCost              = fields[3].GetInt32();
+        entry.ManaCostPerLevel      = fields[4].GetInt32();
+        entry.ManaPerSecond         = fields[5].GetInt32();
+        entry.PowerDisplayID        = fields[6].GetUInt32();
+        entry.AltPowerBarID         = fields[7].GetInt32();
+        entry.PowerCostPct          = fields[8].GetFloat();
+        entry.PowerCostMaxPct       = fields[9].GetFloat();
+        entry.PowerPctPerSecond     = fields[10].GetFloat();
+        entry.PowerType             = fields[11].GetInt8();
+        entry.RequiredAuraSpellID   = fields[12].GetInt32();
+        entry.OptionalCost          = fields[13].GetUInt32();
 
-        _spellPowerStorage.emplace(spellId, entry);
+        _spellPowerStorage.emplace(entry.SpellID, entry);
     }
     while (result->NextRow());
 
@@ -10498,5 +10483,37 @@ SpellPowerEntry const* ObjectMgr::GetSpellPower(uint32 spellId) const
 
 void ObjectMgr::LoadSpellVisuals()
 {
+    uint32 oldMSTime = getMSTime();
 
+    QueryResult result = WorldDatabase.PQuery("SELECT ID, SpellID, DifficultyID, SpellVisualID, Probability, Flags, Priority, SpellIconFileID, ActiveIconFileID, ViewerUnitConditionID, ViewerPlayerConditionID, CasterUnitConditionID, CasterPlayerConditionID FROM spell_visuals");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 spell visuals. DB table `spell_visuals` is empty.");
+        return;
+    }
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        SpellXSpellVisualEntry entry{};
+        entry.ID                        = fields[0].GetUInt32();
+        entry.SpellID                   = fields[1].GetInt32();
+        entry.DifficultyID              = fields[2].GetUInt8();
+        entry.SpellVisualID             = fields[3].GetUInt32();
+        entry.Probability               = fields[4].GetFloat();
+        entry.Flags                     = fields[5].GetUInt8();
+        entry.Priority                  = fields[6].GetUInt8();
+        entry.SpellIconFileID           = fields[7].GetInt32();
+        entry.ActiveIconFileID          = fields[8].GetInt32();
+        entry.ViewerUnitConditionID     = fields[9].GetUInt16();
+        entry.ViewerPlayerConditionID   = fields[10].GetUInt32();
+        entry.CasterUnitConditionID     = fields[11].GetUInt16();
+        entry.CasterPlayerConditionID   = fields[12].GetUInt32();
+
+        _spellVisualStorage.emplace(entry.SpellID, entry);
+    }
+    while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded %u spell visuals in %u ms", _spellVisualStorage.size(), GetMSTimeDiffToNow(oldMSTime));
 }

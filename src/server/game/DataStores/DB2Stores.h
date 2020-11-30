@@ -173,7 +173,6 @@ TC_GAME_API extern DB2Storage<SpellLearnSpellEntry>                 sSpellLearnS
 TC_GAME_API extern DB2Storage<SpellLevelsEntry>                     sSpellLevelsStore;
 TC_GAME_API extern DB2Storage<SpellMiscEntry>                       sSpellMiscStore;
 TC_GAME_API extern DB2Storage<SpellNameEntry>                       sSpellNameStore;
-TC_GAME_API extern DB2Storage<SpellPowerEntry>                      sSpellPowerStore;
 TC_GAME_API extern DB2Storage<SpellPowerDifficultyEntry>            sSpellPowerDifficultyStore;
 TC_GAME_API extern DB2Storage<SpellProcsPerMinuteEntry>             sSpellProcsPerMinuteStore;
 TC_GAME_API extern DB2Storage<SpellRadiusEntry>                     sSpellRadiusStore;
@@ -184,7 +183,6 @@ TC_GAME_API extern DB2Storage<SpellShapeshiftEntry>                 sSpellShapes
 TC_GAME_API extern DB2Storage<SpellShapeshiftFormEntry>             sSpellShapeshiftFormStore;
 TC_GAME_API extern DB2Storage<SpellTargetRestrictionsEntry>         sSpellTargetRestrictionsStore;
 TC_GAME_API extern DB2Storage<SpellTotemsEntry>                     sSpellTotemsStore;
-TC_GAME_API extern DB2Storage<SpellXSpellVisualEntry>               sSpellXSpellVisualStore;
 TC_GAME_API extern DB2Storage<SummonPropertiesEntry>                sSummonPropertiesStore;
 TC_GAME_API extern DB2Storage<TalentEntry>                          sTalentStore;
 TC_GAME_API extern DB2Storage<TaxiNodesEntry>                       sTaxiNodesStore;
