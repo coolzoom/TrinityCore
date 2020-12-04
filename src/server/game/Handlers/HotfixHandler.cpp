@@ -25,24 +25,43 @@
 
 void WorldSession::HandleDBQueryBulk(WorldPackets::Hotfix::DBQueryBulk& dbQuery)
 {
-    DB2StorageBase const* store = sDB2Manager.GetStorage(dbQuery.TableHash);
-    if (!store)
-    {
-        TC_LOG_ERROR("network", "CMSG_DB_QUERY_BULK: %s requested unsupported unknown hotfix type: %u", GetPlayerInfo().c_str(), dbQuery.TableHash);
-        return;
-    }
+    bool isBroadcast = false;
+    if (dbQuery.TableHash == 0x021826BB)
+        isBroadcast = true;
 
+    DB2StorageBase const* store = sDB2Manager.GetStorage(dbQuery.TableHash);
     for (WorldPackets::Hotfix::DBQueryBulk::DBQueryRecord const& record : dbQuery.Queries)
     {
         WorldPackets::Hotfix::DBReply dbReply;
         dbReply.TableHash = dbQuery.TableHash;
         dbReply.RecordID = record.RecordID;
 
-        if (store->HasRecord(record.RecordID))
+        if (store && store->HasRecord(record.RecordID))
         {
             dbReply.Allow = true;
             dbReply.Timestamp = sWorld->GetGameTime();
             store->WriteRecord(record.RecordID, GetSessionDbcLocale(), dbReply.Data);
+        }
+        else if (isBroadcast && sObjectMgr->GetBroadcastTextEntry(record.RecordID))
+        {
+            auto entry = sObjectMgr->GetBroadcastTextEntry(record.RecordID);
+
+            dbReply.Allow = true;
+            dbReply.Timestamp = sWorld->GetGameTime();
+
+            // Write the BroadcastText data.
+            dbReply.Data.WriteString(entry->MaleText.c_str() + '\0', entry->MaleText.size() + 1);
+            dbReply.Data.WriteString(entry->FemaleText.c_str() + '\0', entry->FemaleText.size() + 1);
+            dbReply.Data << uint32(entry->ID);
+            dbReply.Data << uint8(entry->LanguageID);
+            dbReply.Data << int32(entry->ConditionID);
+            dbReply.Data << uint16(entry->EmotesID);
+            dbReply.Data << uint8(entry->Flags);
+            dbReply.Data << uint32(entry->ChatBubbleDurationMs);
+
+            dbReply.Data.append(entry->SoundEntriesID, MAX_SOUND_ENTRIES);
+            dbReply.Data.append(entry->EmoteID, MAX_BROADCAST_TEXT_EMOTES);
+            dbReply.Data.append(entry->EmoteDelay, MAX_BROADCAST_TEXT_EMOTES);
         }
         else
         {

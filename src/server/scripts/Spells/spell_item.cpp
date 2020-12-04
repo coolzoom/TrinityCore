@@ -309,7 +309,7 @@ class spell_item_aura_of_madness : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/) override
             {
-                return sBroadcastTextStore.LookupEntry(SAY_MADNESS) && ValidateSpellInfo(
+                return sObjectMgr->GetBroadcastTextEntry(SAY_MADNESS) && ValidateSpellInfo(
                 {
                     SPELL_SOCIOPATH,
                     SPELL_DELUSIONAL,
@@ -644,7 +644,7 @@ class spell_item_decahedral_dwarven_dice : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/) override
             {
-                if (!sBroadcastTextStore.LookupEntry(TEXT_DECAHEDRAL_DWARVEN_DICE))
+                if (!sObjectMgr->GetBroadcastTextEntry(TEXT_DECAHEDRAL_DWARVEN_DICE))
                     return false;
                 return true;
             }
@@ -2312,7 +2312,7 @@ class spell_item_worn_troll_dice : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/) override
             {
-                if (!sBroadcastTextStore.LookupEntry(TEXT_WORN_TROLL_DICE))
+                if (!sObjectMgr->GetBroadcastTextEntry(TEXT_WORN_TROLL_DICE))
                     return false;
                 return true;
             }
@@ -4129,7 +4129,7 @@ class spell_item_taunt_flag_targeting : public SpellScriptLoader
             bool Validate(SpellInfo const* /*spellInfo*/) override
             {
                 return ValidateSpellInfo({ SPELL_TAUNT_FLAG }) &&
-                    sBroadcastTextStore.LookupEntry(EMOTE_PLANTS_FLAG);
+                    sObjectMgr->GetBroadcastTextEntry(EMOTE_PLANTS_FLAG);
             }
 
             void FilterTargets(std::list<WorldObject*>& targets)

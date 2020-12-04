@@ -696,6 +696,30 @@ typedef std::multimap<uint32, GossipMenuItems> GossipMenuItemsContainer;
 typedef std::pair<GossipMenuItemsContainer::const_iterator, GossipMenuItemsContainer::const_iterator> GossipMenuItemsMapBounds;
 typedef std::pair<GossipMenuItemsContainer::iterator, GossipMenuItemsContainer::iterator> GossipMenuItemsMapBoundsNonConst;
 
+struct BroadcastTextLocale
+{
+    std::vector<std::string> MaleText;
+    std::vector<std::string> FemaleText;
+};
+
+struct BroadcastTextEntry
+{
+    uint32 ID;
+    std::string MaleText;
+    std::string FemaleText;
+    uint8 LanguageID;
+    int32 ConditionID;
+    uint16 EmotesID;
+    uint8 Flags;
+    uint32 ChatBubbleDurationMs;
+    uint32 SoundEntriesID[MAX_SOUND_ENTRIES];
+    uint16 EmoteID[MAX_BROADCAST_TEXT_EMOTES];
+    uint16 EmoteDelay[MAX_BROADCAST_TEXT_EMOTES];
+};
+
+typedef std::unordered_map<uint32, BroadcastTextLocale> BroadcastTextLocaleContainer;
+typedef std::unordered_map<uint32, BroadcastTextEntry> BroadcastTextContainer;
+
 struct QuestPOIPoint
 {
     int32 X;
@@ -1264,6 +1288,11 @@ class TC_GAME_API ObjectMgr
         void LoadGossipMenu();
         void LoadGossipMenuItems();
 
+        void LoadBroadcastText();
+        void LoadBroadcastTextLocales();
+        BroadcastTextEntry const* GetBroadcastTextEntry(uint32 id) const;
+        char const* GetBroadcastLocaleText(BroadcastTextEntry const* entry, LocaleConstant locale = DEFAULT_LOCALE, uint8 gender = GENDER_MALE) const;
+
         void LoadVendors();
         void LoadTrainers();
         void LoadCreatureDefaultTrainers();
@@ -1441,6 +1470,12 @@ class TC_GAME_API ObjectMgr
         {
             auto itr = _playerChoiceLocales.find(ChoiceID);
             if (itr == _playerChoiceLocales.end()) return nullptr;
+            return &itr->second;
+        }
+        BroadcastTextLocale const* GetBroadcastTextLocale(int32 textID) const
+        {
+            auto itr = _broadcastTextLocaleStore.find(textID);
+            if (itr == _broadcastTextLocaleStore.end()) return nullptr;
             return &itr->second;
         }
         GameObjectData const* GetGOData(ObjectGuid::LowType guid) const
@@ -1657,6 +1692,9 @@ class TC_GAME_API ObjectMgr
         RepRewardRateContainer _repRewardRateStore;
         RepOnKillContainer _repOnKillStore;
         RepSpilloverTemplateContainer _repSpilloverTemplateStore;
+
+        BroadcastTextContainer _broadcastTextStore;
+        BroadcastTextLocaleContainer _broadcastTextLocaleStore;
 
         GossipMenusContainer _gossipMenusStore;
         GossipMenuItemsContainer _gossipMenuItemsStore;

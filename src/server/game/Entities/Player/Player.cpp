@@ -14239,17 +14239,17 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId /*= 0*/, bool 
         if (canTalk)
         {
             std::string strOptionText, strBoxText;
-            BroadcastTextEntry const* optionBroadcastText = sBroadcastTextStore.LookupEntry(itr->second.OptionBroadcastTextId);
-            BroadcastTextEntry const* boxBroadcastText = sBroadcastTextStore.LookupEntry(itr->second.BoxBroadcastTextId);
+            BroadcastTextEntry const* optionBroadcastText = sObjectMgr->GetBroadcastTextEntry(itr->second.OptionBroadcastTextId);
+            BroadcastTextEntry const* boxBroadcastText = sObjectMgr->GetBroadcastTextEntry(itr->second.BoxBroadcastTextId);
             LocaleConstant locale = GetSession()->GetSessionDbLocaleIndex();
 
             if (optionBroadcastText)
-                strOptionText = DB2Manager::GetBroadcastTextValue(optionBroadcastText, locale, getGender());
+                strOptionText = sObjectMgr->GetBroadcastLocaleText(optionBroadcastText, locale, getGender());
             else
                 strOptionText = itr->second.OptionText;
 
             if (boxBroadcastText)
-                strBoxText = DB2Manager::GetBroadcastTextValue(boxBroadcastText, locale, getGender());
+                strBoxText = sObjectMgr->GetBroadcastLocaleText(boxBroadcastText, locale, getGender());
             else
                 strBoxText = itr->second.BoxText;
 
@@ -21386,7 +21386,7 @@ void Player::Whisper(uint32 textId, Player* target, bool /*isBossWhisper = false
     if (!target)
         return;
 
-    BroadcastTextEntry const* bct = sBroadcastTextStore.LookupEntry(textId);
+    BroadcastTextEntry const* bct = sObjectMgr->GetBroadcastTextEntry(textId);
     if (!bct)
     {
         TC_LOG_ERROR("entities.unit", "WorldObject::MonsterWhisper: `broadcast_text` was not %u found", textId);
@@ -21395,7 +21395,7 @@ void Player::Whisper(uint32 textId, Player* target, bool /*isBossWhisper = false
 
     LocaleConstant locale = target->GetSession()->GetSessionDbLocaleIndex();
     WorldPackets::Chat::Chat packet;
-    packet.Initialize(CHAT_MSG_WHISPER, LANG_UNIVERSAL, this, target, DB2Manager::GetBroadcastTextValue(bct, locale, getGender()));
+    packet.Initialize(CHAT_MSG_WHISPER, LANG_UNIVERSAL, this, target, sObjectMgr->GetBroadcastLocaleText(bct, locale, getGender()));
     target->SendDirectMessage(packet.Write());
 }
 
