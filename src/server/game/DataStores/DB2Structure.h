@@ -772,21 +772,6 @@ struct BountySetEntry
     uint16 LockedQuestID;
 };
 
-struct BroadcastTextEntry
-{
-    LocalizedString* Text;
-    LocalizedString* Text1;
-    uint32 ID;
-    uint8 LanguageID;
-    int32 ConditionID;
-    uint16 EmotesID;
-    uint8 Flags;
-    uint32 ChatBubbleDurationMs;
-    uint32 SoundEntriesID[2];
-    uint16 EmoteID[MAX_BROADCAST_TEXT_EMOTES];
-    uint16 EmoteDelay[MAX_BROADCAST_TEXT_EMOTES];
-};
-
 struct CameraEffectEntry
 {
     uint32 ID;

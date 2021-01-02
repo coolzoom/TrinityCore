@@ -1173,6 +1173,7 @@ enum WorldMapTransformsFlags
 
 // Misc Defines
 #define MAX_BROADCAST_TEXT_EMOTES 3
+#define MAX_SOUND_ENTRIES 2
 #define MAX_OUTFIT_ITEMS 24
 #define MAX_MASTERY_SPELLS 2
 #define MAX_FACTION_RELATIONS 4

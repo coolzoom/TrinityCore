@@ -97,18 +97,18 @@ void GossipMenu::AddMenuItem(uint32 menuId, uint32 optionIndex, uint32 sender, u
 
         /// Store texts for localization.
         std::string strOptionText, strBoxText;
-        BroadcastTextEntry const* optionBroadcastText = sBroadcastTextStore.LookupEntry(itr->second.OptionBroadcastTextId);
-        BroadcastTextEntry const* boxBroadcastText = sBroadcastTextStore.LookupEntry(itr->second.BoxBroadcastTextId);
+        BroadcastTextEntry const* optionBroadcastText = sObjectMgr->GetBroadcastTextEntry(itr->second.OptionBroadcastTextId);
+        BroadcastTextEntry const* boxBroadcastText = sObjectMgr->GetBroadcastTextEntry(itr->second.BoxBroadcastTextId);
 
         /// OptionText
         if (optionBroadcastText)
-            strOptionText = DB2Manager::GetBroadcastTextValue(optionBroadcastText, GetLocale());
+            strOptionText = sObjectMgr->GetBroadcastLocaleText(optionBroadcastText, GetLocale());
         else
             strOptionText = itr->second.OptionText;
 
         /// BoxText
         if (boxBroadcastText)
-            strBoxText = DB2Manager::GetBroadcastTextValue(boxBroadcastText, GetLocale());
+            strBoxText = sObjectMgr->GetBroadcastLocaleText(boxBroadcastText, GetLocale());
         else
             strBoxText = itr->second.BoxText;
 

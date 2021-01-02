@@ -621,7 +621,7 @@ void Battleground::SendChatMessage(Creature* source, uint8 textId, WorldObject* 
 
 void Battleground::SendBroadcastText(uint32 id, ChatMsg msgType, WorldObject const* target)
 {
-    if (!sBroadcastTextStore.LookupEntry(id))
+    if (!sObjectMgr->GetBroadcastTextEntry(id))
     {
         TC_LOG_ERROR("bg.battleground", "Battleground::SendBroadcastText: `broadcast_text` (ID: %u) was not found", id);
         return;

@@ -1697,6 +1697,12 @@ void World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading Spell Group Stack Rules...");
     sSpellMgr->LoadSpellGroupStackRules();
 
+    TC_LOG_INFO("server.loading", "Loading Broadcast Texts...");
+    sObjectMgr->LoadBroadcastText();
+
+    TC_LOG_INFO("server.loading", "Loading Broadcast Texts Locales...");
+    sObjectMgr->LoadBroadcastTextLocales();
+
     TC_LOG_INFO("server.loading", "Loading NPC Texts...");
     sObjectMgr->LoadNPCText();
 
